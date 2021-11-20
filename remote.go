@@ -6,16 +6,16 @@ import (
 )
 
 type Remote struct {
-    pipe *io.WriteCloser
+    pipe io.WriteCloser
     exit_program bool
 }
 
 
 func (r *Remote) SendString(s string) {
     fmt.Printf("sending '%s'", s)
-    io.WriteString(*r.pipe, s)
+    io.WriteString(r.pipe, s)
 }
 
 func (r *Remote) SendBytes(bs []byte) {
-    io.WriteString(*r.pipe, string(bs))
+    io.WriteString(r.pipe, string(bs))
 }

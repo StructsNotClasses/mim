@@ -2,6 +2,7 @@ package main
 
 import (
     "bufio"
+    //"strings"
     "os"
     "os/exec"
     "log"
@@ -34,12 +35,19 @@ func main() {
         default: // if nothing else arg 1 should be the song to play first
         for _, s := range songs {
             if strings.Contains(s.Path, os.Args[1]) {
-                play_song(&s, &remote)
+                ch := make(chan int)
+                playback_complete := false
+                play_song(&s, &remote, ch)
+                for !playback_complete {
+                    i := <- ch
+                    if i == 1 {
+                        playback_complete = true
+                    }
+                }
             }
         }
         }
-    }
-    */
+    }*/
 
     play_all(songs, &remote)
 }
@@ -95,10 +103,9 @@ func takeUserInputIntoChannel(ch chan []byte) {
 // run mplayer command "mplayer -slave -vo null <song path>"
 // the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
 func play_song(song *Song, remote *Remote, notify_ch chan int) {
-    pipe, writer := playWithSlaveMplayer(song.Path, notify_ch)
-    remote.pipe = &pipe
+    remote.pipe = playWithSlaveMplayer(song.Path, notify_ch)
 
-    go printMplayerOutput(writer)
+    //go printMplayerOutput(writer)
 
     /*
     for {
@@ -118,16 +125,7 @@ func play_song(song *Song, remote *Remote, notify_ch chan int) {
     */
 }
 
-func printMplayerOutput(w AsyncWriter) {
-    value := byte(0)
-    ok := true
-    for ok {
-        value, ok = <- w
-        fmt.Printf("%c", value)
-    }
-}
-
-func playWithSlaveMplayer(file string, notify_ch chan int) (io.WriteCloser, AsyncWriter) {
+func playWithSlaveMplayer(file string, notify_ch chan int) io.WriteCloser {
     cmd := exec.Command("mplayer", 
         "-slave", "-vo", "null", "-quiet", file)   
 
@@ -136,13 +134,13 @@ func playWithSlaveMplayer(file string, notify_ch chan int) (io.WriteCloser, Asyn
         log.Fatal(err)
     }
 
-    wrtr := make(chan byte)
+    wrtr := ModifiableWriter{os.Stdin}
     go runWithWriter(cmd, wrtr, notify_ch)
 
-    return pipe, wrtr
+    return pipe
 }
 
-func runWithWriter(cmd *exec.Cmd, w AsyncWriter, notify_ch chan int) {
+func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notify_ch chan int) {
     cmd.Stdout = w
 
     err := cmd.Run()
