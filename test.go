@@ -3,28 +3,22 @@ package main
 import (
     "bufio"
     "os"
-    "strings"
     "os/exec"
     "log"
     "fmt"
-    "syscall"
     "time"
     "math/rand"
+    "io"
     //"github.com/rthornton128/goncurses"
 )
 
-const CONTROL_FILE_NAME string = "/tmp/mplayer_controls.txt"
 const INT32MAX = 2147483647
 const PARENT_DIRECTORY = "/mnt/music"
 const SONG_LIST_FILE = "/mnt/music/music_player/songs.json"
 
-type AsyncWriter chan byte
-
-func main() { //the writing end of the fifo pipe has to be opened only after the reading end is opened
-    remote := Remote{CONTROL_FILE_NAME, nil, false}
-
+//the writing end of the fifo pipe has to be opened only after the reading end is opened
+func main() { 
     //current behavior is to regenerate the song list each run. probably needs to change
-    fmt.Println(os.Args)
     storeFileTree(PARENT_DIRECTORY, SONG_LIST_FILE) 
 
     //open the entire song list
@@ -33,6 +27,8 @@ func main() { //the writing end of the fifo pipe has to be opened only after the
         log.Fatal(err)
     }
 
+    remote := Remote{nil, false}
+    /*
     if len(os.Args) > 1 {
         switch os.Args[1] {
         default: // if nothing else arg 1 should be the song to play first
@@ -43,21 +39,12 @@ func main() { //the writing end of the fifo pipe has to be opened only after the
         }
         }
     }
+    */
 
     play_all(songs, &remote)
 }
 
-func createControlFile() {
-    creation_err := create_fifo(CONTROL_FILE_NAME)
-    if creation_err != nil {
-        log.Fatal(creation_err)
-    }
-}
-
 func play_all(songs SongList, remote *Remote) {
-    //generate random number between 0 and len(songs)
-    //play song at index r
-    //  run mplayer command "mplayer -slave -input ctrl_file_string -vo null <song path>"
     //todo: add controls through the remote so you don't have to do wacky shit to quit and stuff
     rand.Seed(time.Now().UnixNano())
 
@@ -65,114 +52,104 @@ func play_all(songs SongList, remote *Remote) {
         log.Fatal(fmt.Sprintf("Cannot play more than %d songs at a time (the fuck are you even doing playing this many songs lol, you're maxing out the fucking range of an integer)", INT32MAX))
     }
 
+    user_input_ch := make(chan []byte)
+    go takeUserInputIntoChannel(user_input_ch)
+
     for !remote.exit_program {
         rand_num := rand.Int31n(int32(len(songs)))
-        play_song(&songs[rand_num], remote)
-    }
-}
+        notify_ch := make(chan int)
+        play_song(&songs[rand_num], remote, notify_ch)
 
-func play_song(song *Song, remote *Remote) {
-    os.Remove(CONTROL_FILE_NAME)
-    createControlFile()
-    defer os.Remove(CONTROL_FILE_NAME)
-
-    writer := AsyncWriter(make(chan byte))
-    user_input_channel := make(chan string)
-    mplayer_output := []byte{}
-    value := byte(0)
-
-    go receiveUserInput(user_input_channel)
-    go playFileWithSlaveMplayer(CONTROL_FILE_NAME, song.Path, writer)
-
-    err := remote.Open()
-    if err != nil {
-        log.Fatal("failed to open mplayer control file")
-    }
-    defer remote.Close()
-
-    //fmt.Println("Enter Commands Below:")
-
-    remote.SendString(" \n \n")
-
-    keep_going := true
-    for keep_going {
-        select {
-        case user_string := <- user_input_channel:
-            switch user_string {
-            case "exit\n":
-                remote.exit_program = true
-                remote.DirtySendString("quit", CONTROL_FILE_NAME)
-            case "skip\n":
-                remote.DirtySendString("quit", CONTROL_FILE_NAME)
-            case "mout\n":
-                fmt.Print(string(mplayer_output))
-            default:
-                remote.DirtySendString(user_string, CONTROL_FILE_NAME)
+        playback_complete := false
+        for !playback_complete {
+            select {
+            case user_bytes := <- user_input_ch:
+                switch string(user_bytes) {
+                case "exit\n":
+                    remote.exit_program = true
+                    remote.SendBytes([]byte("quit\n"))
+                default:
+                    remote.SendBytes(user_bytes)
+                }
+            case notification := <- notify_ch:
+                if notification == 1 {
+                    playback_complete = true
+                }
             }
-        case value, keep_going = <- writer:
-            mplayer_output = append(mplayer_output, value)
         }
     }
 }
 
-func playFileWithSlaveMplayer(ctrl string, file string, w AsyncWriter) {
-    arguments := []string{
-        "-slave", 
-        "-input", fmt.Sprintf("file=%s", ctrl), 
-        "-vo", "null", 
-        "-quiet", file}
-    run_mplayer(arguments, w)
-}
-
-func receiveUserInput(ch chan string) {
+func takeUserInputIntoChannel(ch chan []byte) {
     r := bufio.NewReader(os.Stdin)
+    //needs a way to exit when play_all exits
     for {
         bs, err := r.ReadBytes('\n')
         if err != nil {
             fmt.Println("failed to read input", err)
         }
-        ch <- string(bs)
+        ch <- bs
     }
 }
 
-func run_mplayer(args []string, writer AsyncWriter) {
-    cmd := exec.Command("mplayer")
-    cmd.Args = args
-    cmd.Stdout = writer
+// run mplayer command "mplayer -slave -vo null <song path>"
+// the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
+func play_song(song *Song, remote *Remote, notify_ch chan int) {
+    pipe, writer := playWithSlaveMplayer(song.Path, notify_ch)
+    remote.pipe = &pipe
+
+    go printMplayerOutput(writer)
+
+    /*
+    for {
+        user_string := <-user_input_channel
+        switch user_string {
+        case "exit\n":
+            remote.exit_program = true
+            remote.SendString("quit")
+        case "skip\n":
+            remote.SendString("quit")
+        case "mout\n":
+            fmt.Print(string(mplayer_output))
+        default:
+            remote.SendString(user_string)
+        }
+    }
+    */
+}
+
+func printMplayerOutput(w AsyncWriter) {
+    value := byte(0)
+    ok := true
+    for ok {
+        value, ok = <- w
+        fmt.Printf("%c", value)
+    }
+}
+
+func playWithSlaveMplayer(file string, notify_ch chan int) (io.WriteCloser, AsyncWriter) {
+    cmd := exec.Command("mplayer", 
+        "-slave", "-vo", "null", "-quiet", file)   
+
+    pipe, err := cmd.StdinPipe()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    wrtr := make(chan byte)
+    go runWithWriter(cmd, wrtr, notify_ch)
+
+    return pipe, wrtr
+}
+
+func runWithWriter(cmd *exec.Cmd, w AsyncWriter, notify_ch chan int) {
+    cmd.Stdout = w
 
     err := cmd.Run()
     if err != nil {
         log.Fatal(err)
     }
 
-    writer.Close()
-}
-
-func create_fifo(filename string) error {
-    os.Remove(filename)
-    err := syscall.Mkfifo(filename, 0666)
-    if err != nil {
-        log.Fatal("Unable to create named pipe because of error:", err)
-    }
-    return err
-}
-
-func remove(filename string) { //better be careful with this one haha
-    cmd := exec.Command("rm", filename)
-    err := cmd.Run()
-    if err != nil {
-        fmt.Printf("Failed to remove created file '%'\n", filename)
-        log.Fatal(err)
-    }
-}
-
-func (w AsyncWriter) Write(p []byte) (n int, err error) {
-    for _, b := range p {
-        w <- b
-    }
-    return len(p), nil
-}
-
-func (w AsyncWriter) Close() {
-    close(w)
+    notify_ch <- 1
+    w.Close()
 }
