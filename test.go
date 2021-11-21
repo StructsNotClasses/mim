@@ -1,7 +1,7 @@
 package main
 
 import (
-    "bufio"
+    //"bufio"
     //"strings"
     "os"
     "os/exec"
@@ -10,7 +10,7 @@ import (
     "time"
     "math/rand"
     "io"
-    //"github.com/rthornton128/goncurses"
+    gnc "github.com/rthornton128/goncurses"
 )
 
 const INT32MAX = 2147483647
@@ -29,6 +29,42 @@ func main() {
     }
 
     remote := Remote{nil, false}
+
+    stdscr, err := gnc.Init()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer gnc.End()
+
+    _, width := stdscr.MaxYX()
+
+    newwin, err := gnc.NewWindow(30, width, 0, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = newwin.Border('o', 'o', 'o', 'o', 'o', 'o', 'o', 'o')
+    if err != nil {
+        log.Fatal(err)
+    }
+    newwin.Refresh()
+
+    newwinsub, err := Mkfakesub(newwin)
+    if err != nil {
+        log.Fatal(err)
+    }
+    newwinsub.ScrollOk(true)
+    /*
+    err = newwin.Box(' ', '=')
+    if err != nil {
+        log.Fatal(err)
+    }
+    */
+
+
+    gnc.CBreak(true)
+    gnc.Echo(false)
+    stdscr.Keypad(true)
+
     /*
     if len(os.Args) > 1 {
         switch os.Args[1] {
@@ -49,10 +85,10 @@ func main() {
         }
     }*/
 
-    play_all(songs, &remote)
+    play_all(songs, &remote, stdscr, newwin, newwinsub)
 }
 
-func play_all(songs SongList, remote *Remote) {
+func play_all(songs SongList, remote *Remote, scr *gnc.Window, bwin *gnc.Window, mpwin *gnc.Window) {
     //todo: add controls through the remote so you don't have to do wacky shit to quit and stuff
     rand.Seed(time.Now().UnixNano())
 
@@ -61,12 +97,12 @@ func play_all(songs SongList, remote *Remote) {
     }
 
     user_input_ch := make(chan []byte)
-    go takeUserInputIntoChannel(user_input_ch)
+    go takeUserInputIntoChannel(user_input_ch, scr)
 
     for !remote.exit_program {
         rand_num := rand.Int31n(int32(len(songs)))
         notify_ch := make(chan int)
-        play_song(&songs[rand_num], remote, notify_ch)
+        play_song(&songs[rand_num], remote, notify_ch, bwin, mpwin)
 
         playback_complete := false
         for !playback_complete {
@@ -88,44 +124,27 @@ func play_all(songs SongList, remote *Remote) {
     }
 }
 
-func takeUserInputIntoChannel(ch chan []byte) {
-    r := bufio.NewReader(os.Stdin)
+func takeUserInputIntoChannel(ch chan []byte, scr *gnc.Window) {
+    bs := []byte{}
+    //r := bufio.NewReader(os.Stdin)
     //needs a way to exit when play_all exits
     for {
-        bs, err := r.ReadBytes('\n')
-        if err != nil {
-            fmt.Println("failed to read input", err)
+        c := scr.GetChar()
+        bs = append(bs, byte(c))
+        if c == '\n' {
+            ch <- bs
+            bs = []byte{}
         }
-        ch <- bs
     }
 }
 
 // run mplayer command "mplayer -slave -vo null <song path>"
 // the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
-func play_song(song *Song, remote *Remote, notify_ch chan int) {
-    remote.pipe = playWithSlaveMplayer(song.Path, notify_ch)
-
-    //go printMplayerOutput(writer)
-
-    /*
-    for {
-        user_string := <-user_input_channel
-        switch user_string {
-        case "exit\n":
-            remote.exit_program = true
-            remote.SendString("quit")
-        case "skip\n":
-            remote.SendString("quit")
-        case "mout\n":
-            fmt.Print(string(mplayer_output))
-        default:
-            remote.SendString(user_string)
-        }
-    }
-    */
+func play_song(song *Song, remote *Remote, notify_ch chan int, bwin, mpwin *gnc.Window) {
+    remote.pipe = playWithSlaveMplayer(song.Path, notify_ch, bwin, mpwin)
 }
 
-func playWithSlaveMplayer(file string, notify_ch chan int) io.WriteCloser {
+func playWithSlaveMplayer(file string, notify_ch chan int, bwin, mpwin *gnc.Window) io.WriteCloser {
     cmd := exec.Command("mplayer", 
         "-slave", "-vo", "null", "-quiet", file)   
 
@@ -134,7 +153,7 @@ func playWithSlaveMplayer(file string, notify_ch chan int) io.WriteCloser {
         log.Fatal(err)
     }
 
-    wrtr := ModifiableWriter{os.Stdin}
+    wrtr := ModifiableWriter{os.Stdin, bwin, mpwin}
     go runWithWriter(cmd, wrtr, notify_ch)
 
     return pipe
