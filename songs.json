@@ -4888,6 +4888,14 @@
     "path": "/mnt/music/music_player/.git/objects"
   },
   {
+    "name": "0d",
+    "path": "/mnt/music/music_player/.git/objects/0d"
+  },
+  {
+    "name": "1ef13aa956a293b28e35acf56df2a3ebc2a65d",
+    "path": "/mnt/music/music_player/.git/objects/0d/1ef13aa956a293b28e35acf56df2a3ebc2a65d"
+  },
+  {
     "name": "11",
     "path": "/mnt/music/music_player/.git/objects/11"
   },
@@ -4964,6 +4972,14 @@
     "path": "/mnt/music/music_player/.git/objects/4b/825dc642cb6eb9a060e54bf8d69288fbee4904"
   },
   {
+    "name": "5c",
+    "path": "/mnt/music/music_player/.git/objects/5c"
+  },
+  {
+    "name": "0fa16e9955ba5fc1655cbc7af018ee0d3f22c3",
+    "path": "/mnt/music/music_player/.git/objects/5c/0fa16e9955ba5fc1655cbc7af018ee0d3f22c3"
+  },
+  {
     "name": "61",
     "path": "/mnt/music/music_player/.git/objects/61"
   },
@@ -4978,6 +4994,14 @@
   {
     "name": "9834c4e0783b0f0fc867f7ff44e7d980b146ee",
     "path": "/mnt/music/music_player/.git/objects/65/9834c4e0783b0f0fc867f7ff44e7d980b146ee"
+  },
+  {
+    "name": "66",
+    "path": "/mnt/music/music_player/.git/objects/66"
+  },
+  {
+    "name": "3db7f8725a03c9013c6e2f21ce60c8311ad27c",
+    "path": "/mnt/music/music_player/.git/objects/66/3db7f8725a03c9013c6e2f21ce60c8311ad27c"
   },
   {
     "name": "7c",
@@ -4996,12 +5020,28 @@
     "path": "/mnt/music/music_player/.git/objects/8b/0a324cc7b7f7c13ed44a3156adc6513a4987ee"
   },
   {
+    "name": "97",
+    "path": "/mnt/music/music_player/.git/objects/97"
+  },
+  {
+    "name": "79ab83557e7e392c13ed3bd1be9fdcd14052b1",
+    "path": "/mnt/music/music_player/.git/objects/97/79ab83557e7e392c13ed3bd1be9fdcd14052b1"
+  },
+  {
     "name": "a0",
     "path": "/mnt/music/music_player/.git/objects/a0"
   },
   {
     "name": "7142f528151ac4c7d6115cb5e27d938b883aa5",
     "path": "/mnt/music/music_player/.git/objects/a0/7142f528151ac4c7d6115cb5e27d938b883aa5"
+  },
+  {
+    "name": "ad",
+    "path": "/mnt/music/music_player/.git/objects/ad"
+  },
+  {
+    "name": "4a87063b06ef096bed5979f0bc064383276bad",
+    "path": "/mnt/music/music_player/.git/objects/ad/4a87063b06ef096bed5979f0bc064383276bad"
   },
   {
     "name": "b2",
@@ -7618,6 +7658,10 @@
   {
     "name": "origin.yaml",
     "path": "/mnt/music/yung_lean/flacs/Yung Lean - Lavender EP (2013) [Unknown] [WEB FLAC-48kHz]/origin.yaml"
+  },
+  {
+    "name": "playlist.txt",
+    "path": "/mnt/music/yung_lean/flacs/Yung Lean - Lavender EP (2013) [Unknown] [WEB FLAC-48kHz]/playlist.txt"
   },
   {
     "name": "Yung Lean - Warlord (2016) [DLX, YEAR0001] [WEB FLAC]",

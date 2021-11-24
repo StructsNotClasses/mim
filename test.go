@@ -10,12 +10,14 @@ import (
     "time"
     "math/rand"
     "io"
+    "bufio"
     gnc "github.com/rthornton128/goncurses"
 )
 
 const INT32MAX = 2147483647
 const PARENT_DIRECTORY = "/mnt/music"
 const SONG_LIST_FILE = "/mnt/music/music_player/songs.json"
+var width, height int
 
 //the writing end of the fifo pipe has to be opened only after the reading end is opened
 func main() { 
@@ -36,29 +38,29 @@ func main() {
     }
     defer gnc.End()
 
-    _, width := stdscr.MaxYX()
+    height, width := stdscr.MaxYX()
+    ho2 := int(height / 2)
+    ho4 := int(height / 4)
 
-    newwin, err := gnc.NewWindow(30, width, 0, 0)
+    newwin := stdscr.Derived(ho2, width, 0, 0)
     if err != nil {
         log.Fatal(err)
     }
-    err = newwin.Border('o', 'o', 'o', 'o', 'o', 'o', 'o', 'o')
-    if err != nil {
-        log.Fatal(err)
-    }
-    newwin.Refresh()
-
     newwinsub, err := Mkfakesub(newwin)
     if err != nil {
         log.Fatal(err)
     }
     newwinsub.ScrollOk(true)
-    /*
-    err = newwin.Box(' ', '=')
+    infowin, err := gnc.NewWindow(ho4, width, ho2, 0)
     if err != nil {
         log.Fatal(err)
     }
-    */
+    inputwin, err := gnc.NewWindow(ho4, width, ho2 + ho4, 0)
+    if err != nil {
+        log.Fatal(err)
+    }
+    infowin.ScrollOk(true)
+    inputwin.ScrollOk(true)
 
 
     gnc.CBreak(true)
@@ -85,10 +87,12 @@ func main() {
         }
     }*/
 
-    play_all(songs, &remote, stdscr, newwin, newwinsub)
+    play_all(songs, &remote, stdscr, newwin, newwinsub, infowin, inputwin)
 }
 
-func play_all(songs SongList, remote *Remote, scr *gnc.Window, bwin *gnc.Window, mpwin *gnc.Window) {
+func play_all(songs SongList, remote *Remote, scr *gnc.Window, bwin *gnc.Window, mpwin *gnc.Window, infowin *gnc.Window, echowin *gnc.Window) {
+    //check if windows are nil
+
     //todo: add controls through the remote so you don't have to do wacky shit to quit and stuff
     rand.Seed(time.Now().UnixNano())
 
@@ -96,51 +100,60 @@ func play_all(songs SongList, remote *Remote, scr *gnc.Window, bwin *gnc.Window,
         log.Fatal(fmt.Sprintf("Cannot play more than %d songs at a time (the fuck are you even doing playing this many songs lol, you're maxing out the fucking range of an integer)", INT32MAX))
     }
 
-    user_input_ch := make(chan []byte)
-    go takeUserInputIntoChannel(user_input_ch, scr)
+    user_input_ch := make(chan byte)
+    go takeUserInputIntoChannel(user_input_ch)//, scr)
 
+    user_bs := []byte{}
     for !remote.exit_program {
         rand_num := rand.Int31n(int32(len(songs)))
         notify_ch := make(chan int)
-        play_song(&songs[rand_num], remote, notify_ch, bwin, mpwin)
+        play_song(&songs[rand_num], remote, notify_ch, bwin, mpwin, infowin)
 
         playback_complete := false
         for !playback_complete {
             select {
-            case user_bytes := <- user_input_ch:
-                switch string(user_bytes) {
-                case "exit\n":
-                    remote.exit_program = true
-                    remote.SendBytes([]byte("quit\n"))
-                default:
-                    remote.SendBytes(user_bytes)
+            case user_b := <- user_input_ch:
+                user_bs = append(user_bs, user_b)
+                echowin.AddChar(gnc.Char(user_b))//MovePrint(0, 0, string(user_bs))
+                echowin.Refresh()
+                if user_b == '\n' {
+                    switch string(user_bs) {
+                    case "exit\n":
+                        remote.exit_program = true
+                        remote.SendBytes([]byte("quit\n"))
+                    default:
+                        mpwin.Print("\nsending\n")
+                        remote.SendBytes(user_bs)
+                    }
+                    user_bs = []byte{}
                 }
             case notification := <- notify_ch:
                 if notification == 1 {
                     playback_complete = true
                 }
             }
+            scr.Refresh()
         }
     }
 }
 
-func takeUserInputIntoChannel(ch chan []byte, scr *gnc.Window) {
-    bs := []byte{}
-    //r := bufio.NewReader(os.Stdin)
-    //needs a way to exit when play_all exits
+func takeUserInputIntoChannel(ch chan byte) {//, scr *gnc.Window) {
+    r := bufio.NewReader(os.Stdin)
     for {
-        c := scr.GetChar()
-        bs = append(bs, byte(c))
-        if c == '\n' {
-            ch <- bs
-            bs = []byte{}
+        b, err := r.ReadByte()
+        if err != nil {
+            log.Fatal(err)
         }
+        //needs a way to exit when play_all exits
+        ch <- b
     }
 }
 
 // run mplayer command "mplayer -slave -vo null <song path>"
 // the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
-func play_song(song *Song, remote *Remote, notify_ch chan int, bwin, mpwin *gnc.Window) {
+func play_song(song *Song, remote *Remote, notify_ch chan int, bwin, mpwin, infowin *gnc.Window) {
+    infowin.Println("Playing " + song.Name)
+    infowin.Refresh()
     remote.pipe = playWithSlaveMplayer(song.Path, notify_ch, bwin, mpwin)
 }
 
