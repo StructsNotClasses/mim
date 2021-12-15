@@ -5592,12 +5592,28 @@
     "path": "/mnt/music/music_player/.git/objects/66/3db7f8725a03c9013c6e2f21ce60c8311ad27c"
   },
   {
+    "name": "71",
+    "path": "/mnt/music/music_player/.git/objects/71"
+  },
+  {
+    "name": "a7e635a92e89bd26b00206fd45d56d2884a9a2",
+    "path": "/mnt/music/music_player/.git/objects/71/a7e635a92e89bd26b00206fd45d56d2884a9a2"
+  },
+  {
     "name": "7c",
     "path": "/mnt/music/music_player/.git/objects/7c"
   },
   {
     "name": "1c1075f3f0b20f172c3b65b7c9e4374c5d2417",
     "path": "/mnt/music/music_player/.git/objects/7c/1c1075f3f0b20f172c3b65b7c9e4374c5d2417"
+  },
+  {
+    "name": "7d",
+    "path": "/mnt/music/music_player/.git/objects/7d"
+  },
+  {
+    "name": "b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093",
+    "path": "/mnt/music/music_player/.git/objects/7d/b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093"
   },
   {
     "name": "8b",
@@ -5616,6 +5632,14 @@
     "path": "/mnt/music/music_player/.git/objects/92/815c669a308bec30e9c02e8a5ea9f97283dfba"
   },
   {
+    "name": "96",
+    "path": "/mnt/music/music_player/.git/objects/96"
+  },
+  {
+    "name": "4a08418e59d2ca889af39f9298a27fd38a7822",
+    "path": "/mnt/music/music_player/.git/objects/96/4a08418e59d2ca889af39f9298a27fd38a7822"
+  },
+  {
     "name": "97",
     "path": "/mnt/music/music_player/.git/objects/97"
   },
@@ -5624,12 +5648,28 @@
     "path": "/mnt/music/music_player/.git/objects/97/79ab83557e7e392c13ed3bd1be9fdcd14052b1"
   },
   {
+    "name": "9a",
+    "path": "/mnt/music/music_player/.git/objects/9a"
+  },
+  {
+    "name": "d344fecd7cad57f3c854f81c7c83c6e1579c83",
+    "path": "/mnt/music/music_player/.git/objects/9a/d344fecd7cad57f3c854f81c7c83c6e1579c83"
+  },
+  {
     "name": "a0",
     "path": "/mnt/music/music_player/.git/objects/a0"
   },
   {
     "name": "7142f528151ac4c7d6115cb5e27d938b883aa5",
     "path": "/mnt/music/music_player/.git/objects/a0/7142f528151ac4c7d6115cb5e27d938b883aa5"
+  },
+  {
+    "name": "ab",
+    "path": "/mnt/music/music_player/.git/objects/ab"
+  },
+  {
+    "name": "65f8226b02c5f000f2a662a9b96c70b1bf8335",
+    "path": "/mnt/music/music_player/.git/objects/ab/65f8226b02c5f000f2a662a9b96c70b1bf8335"
   },
   {
     "name": "ad",
@@ -5674,6 +5714,14 @@
   {
     "name": "26e84439732239d118908eea86b74441f1fb95",
     "path": "/mnt/music/music_player/.git/objects/cb/26e84439732239d118908eea86b74441f1fb95"
+  },
+  {
+    "name": "d0",
+    "path": "/mnt/music/music_player/.git/objects/d0"
+  },
+  {
+    "name": "f6f14a96524a391dca2799726ac5c2acc6245f",
+    "path": "/mnt/music/music_player/.git/objects/d0/f6f14a96524a391dca2799726ac5c2acc6245f"
   },
   {
     "name": "e5",
@@ -5760,6 +5808,10 @@
     "path": "/mnt/music/music_player/go.sum"
   },
   {
+    "name": "main.go",
+    "path": "/mnt/music/music_player/main.go"
+  },
+  {
     "name": "musicplayer",
     "path": "/mnt/music/music_player/musicplayer"
   },
@@ -5778,10 +5830,6 @@
   {
     "name": "test",
     "path": "/mnt/music/music_player/test"
-  },
-  {
-    "name": "test.go",
-    "path": "/mnt/music/music_player/test.go"
   },
   {
     "name": "ott",
