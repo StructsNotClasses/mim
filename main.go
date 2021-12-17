@@ -13,7 +13,8 @@ import (
     "io"
     "errors"
     gnc "github.com/rthornton128/goncurses"
-    tango "musicplayer/tengotango"
+    tango "github.com/StructsNotClasses/tengotango"
+    remote "github.com/StructsNotClasses/musicplayer/remote"
     //tengo "github.com/d5/tengo/v2"
 )
 
@@ -35,20 +36,6 @@ type SongTree struct {
     currentAtTop int32
 }
 
-// how it'll work:
-// when a script executes, it is given a bunch of variables. there would be two classes of these really. the first is 
-// the current state of the program, including things like the song list, volume, etc. the second is utility variables
-// that you can't create in tengo, like random numbers and shit
-// when execution is finished, the program state information is read from the script and changed accordingly. if volume
-// was increased by 50%, that will be changed and so on. different songs can be played by changing the current song index.
-// there would be some preprocessor style directives to do things like run a script over and over, wait for playback to end, so on
-
-// variables:
-// songs: struct containing array of Song structs and index of current song
-// rand: random float between 0 and 1 seeded to a script upon execution
-// volume: int between 0 and 100, pretty self explanatory
-
-//the writing end of the fifo pipe has to be opened only after the reading end is opened
 func main() { 
     //current behavior is to regenerate the song list each run. probably needs to change
     storeFileTree(PARENT_DIRECTORY, SONG_LIST_FILE) 
@@ -149,7 +136,7 @@ func playAll(songs SongList, client Client) {
         st.currentIndex = rand.Int31n(int32(len(songs)))
         drawTree(&st, client.treeWindow)
         notifier := make(chan int)
-        remote := playFileWithMplayer(songs[st.currentIndex].Path, notifier, client.infoWindow)
+        remoteToCurrentInstance = playFileWithMplayer(songs[st.currentIndex].Path, notifier, client.infoWindow)
         playback_complete := false
         for !playback_complete {
             select {
@@ -178,7 +165,9 @@ func playAll(songs SongList, client Client) {
                             _ = <- notifier
                             remote = playFileWithMplayer(songs[index].Path, notifier, client.infoWindow)
                         } else {
-                            remote.SendBytes(user_bs)
+                            client.commandOutputWindow.Print("Running script: " + string(user_bs))
+                            client.commandOutputWindow.Refresh()
+                            runBytesAsScript(user_bs, client.commandOutputWindow)
                         }
                     }
                     user_bs = []byte{}
@@ -191,6 +180,25 @@ func playAll(songs SongList, client Client) {
             client.backgroundWindow.Refresh()
         }
     }
+}
+
+func runBytesAsScript(bs []byte, outputWindow *gnc.Window) {
+    script := tango.NewScript(bs)
+
+    bytecode, err := script.Compile()
+    if err != nil {
+        outputWindow.Print(err)
+    } else {
+        outputWindow.Print("Successful compilation!\n")
+    }
+    outputWindow.Refresh()
+    if err := bytecode.Run(); err != nil {
+        outputWindow.Print(err)
+        outputWindow.Refresh()
+    }
+    x := bytecode.Get("x").Int()
+    outputWindow.Print("The value of x is ", x)
+    outputWindow.Refresh()
 }
 
 func drawTree(tree *SongTree, win *gnc.Window) {
