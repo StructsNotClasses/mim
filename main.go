@@ -13,6 +13,8 @@ import (
     "io"
     "errors"
     gnc "github.com/rthornton128/goncurses"
+    tango "musicplayer/tengotango"
+    //tengo "github.com/d5/tengo/v2"
 )
 
 const INT32MAX = 2147483647
@@ -32,6 +34,19 @@ type SongTree struct {
     currentIndex int32
     currentAtTop int32
 }
+
+// how it'll work:
+// when a script executes, it is given a bunch of variables. there would be two classes of these really. the first is 
+// the current state of the program, including things like the song list, volume, etc. the second is utility variables
+// that you can't create in tengo, like random numbers and shit
+// when execution is finished, the program state information is read from the script and changed accordingly. if volume
+// was increased by 50%, that will be changed and so on. different songs can be played by changing the current song index.
+// there would be some preprocessor style directives to do things like run a script over and over, wait for playback to end, so on
+
+// variables:
+// songs: struct containing array of Song structs and index of current song
+// rand: random float between 0 and 1 seeded to a script upon execution
+// volume: int between 0 and 100, pretty self explanatory
 
 //the writing end of the fifo pipe has to be opened only after the reading end is opened
 func main() { 
@@ -180,28 +195,38 @@ func playAll(songs SongList, client Client) {
 
 func drawTree(tree *SongTree, win *gnc.Window) {
     win.Erase()
-    hog, _ := win.MaxYX()
+    hog, width := win.MaxYX()
     height := int32(hog)
     delta := tree.currentAtTop - tree.currentIndex
-    if delta > height {
-        tree.currentAtTop = tree.currentIndex - height + 1
+    if delta > 56 {
+        tree.currentAtTop = tree.currentIndex - 56
     } else if delta < 0 {
         tree.currentAtTop = tree.currentIndex
     }
-    //for i := currentAtTop; i < 
-    for i := tree.currentAtTop; i < tree.currentAtTop + height - 1; i++ {
+    if tree.currentAtTop < 0 {
+        tree.currentAtTop = 0
+    }
+    for i := tree.currentAtTop; i < tree.currentAtTop + height && i < int32(len(tree.songs)); i++ {
         song := tree.songs[i]
         if i == tree.currentIndex {
             win.AttrOn(gnc.A_STANDOUT)
             win.AttrOff(gnc.A_NORMAL)
-            win.Print(song.Name + "\n")
+            winClampPrintln(win, song.Name, width)
             win.AttrOff(gnc.A_STANDOUT)
             win.AttrOn(gnc.A_NORMAL)
         } else {
-            win.Print(song.Name + "\n")
+            winClampPrintln(win, song.Name, width)
         }
     }
     win.Refresh()
+}
+
+func winClampPrintln(w *gnc.Window, s string, limit int) {
+    if len(s) > limit {
+        w.Print(s[0:limit - 1] + "\n")
+    } else {
+        w.Print(s + "\n")
+    }
 }
 
 func takeUserInputIntoChannel(window *gnc.Window, ch chan gnc.Key) {

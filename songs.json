@@ -5460,6 +5460,14 @@
     "path": "/mnt/music/music_player/.git/objects"
   },
   {
+    "name": "01",
+    "path": "/mnt/music/music_player/.git/objects/01"
+  },
+  {
+    "name": "00b025f457646b8f402abd6ef6edf566fb89c3",
+    "path": "/mnt/music/music_player/.git/objects/01/00b025f457646b8f402abd6ef6edf566fb89c3"
+  },
+  {
     "name": "0d",
     "path": "/mnt/music/music_player/.git/objects/0d"
   },
@@ -5512,6 +5520,14 @@
     "path": "/mnt/music/music_player/.git/objects/2b/0976a263d08b3c8cb1509bd71ce62157b5eb6f"
   },
   {
+    "name": "2e",
+    "path": "/mnt/music/music_player/.git/objects/2e"
+  },
+  {
+    "name": "5c465eaafb4eb1ada8ef14b8cbcc6f6a32248e",
+    "path": "/mnt/music/music_player/.git/objects/2e/5c465eaafb4eb1ada8ef14b8cbcc6f6a32248e"
+  },
+  {
     "name": "30",
     "path": "/mnt/music/music_player/.git/objects/30"
   },
@@ -5550,6 +5566,22 @@
   {
     "name": "60e511011bda9767030846a3fc4d0cb1449c73",
     "path": "/mnt/music/music_player/.git/objects/3a/60e511011bda9767030846a3fc4d0cb1449c73"
+  },
+  {
+    "name": "46",
+    "path": "/mnt/music/music_player/.git/objects/46"
+  },
+  {
+    "name": "803530d492b7df03de9fd0c93b3fb9fead62da",
+    "path": "/mnt/music/music_player/.git/objects/46/803530d492b7df03de9fd0c93b3fb9fead62da"
+  },
+  {
+    "name": "48",
+    "path": "/mnt/music/music_player/.git/objects/48"
+  },
+  {
+    "name": "9abcee0833114619498048a619f5f9253af7dc",
+    "path": "/mnt/music/music_player/.git/objects/48/9abcee0833114619498048a619f5f9253af7dc"
   },
   {
     "name": "4b",
@@ -5592,6 +5624,14 @@
     "path": "/mnt/music/music_player/.git/objects/66/3db7f8725a03c9013c6e2f21ce60c8311ad27c"
   },
   {
+    "name": "70",
+    "path": "/mnt/music/music_player/.git/objects/70"
+  },
+  {
+    "name": "9a66c5331a028ed21f2f496163a00f570da321",
+    "path": "/mnt/music/music_player/.git/objects/70/9a66c5331a028ed21f2f496163a00f570da321"
+  },
+  {
     "name": "71",
     "path": "/mnt/music/music_player/.git/objects/71"
   },
@@ -5614,6 +5654,22 @@
   {
     "name": "b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093",
     "path": "/mnt/music/music_player/.git/objects/7d/b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093"
+  },
+  {
+    "name": "80",
+    "path": "/mnt/music/music_player/.git/objects/80"
+  },
+  {
+    "name": "5f122381c4a79360782b6ed80c532249553391",
+    "path": "/mnt/music/music_player/.git/objects/80/5f122381c4a79360782b6ed80c532249553391"
+  },
+  {
+    "name": "83",
+    "path": "/mnt/music/music_player/.git/objects/83"
+  },
+  {
+    "name": "41f7916e2cc210f3fb60c8bdb372143fa36e02",
+    "path": "/mnt/music/music_player/.git/objects/83/41f7916e2cc210f3fb60c8bdb372143fa36e02"
   },
   {
     "name": "8b",
@@ -5700,6 +5756,14 @@
     "path": "/mnt/music/music_player/.git/objects/b6/f740b9722b8bea81b5c83ed364b2fa95ad7e25"
   },
   {
+    "name": "b7",
+    "path": "/mnt/music/music_player/.git/objects/b7"
+  },
+  {
+    "name": "5645a770a708c800f3420ff98a38ff12102743",
+    "path": "/mnt/music/music_player/.git/objects/b7/5645a770a708c800f3420ff98a38ff12102743"
+  },
+  {
     "name": "b8",
     "path": "/mnt/music/music_player/.git/objects/b8"
   },
@@ -5756,6 +5820,14 @@
     "path": "/mnt/music/music_player/.git/objects/ef/5667f1d9e5cd6add0d50ce4157dd236f662a34"
   },
   {
+    "name": "ff",
+    "path": "/mnt/music/music_player/.git/objects/ff"
+  },
+  {
+    "name": "4a3b53a2e66bbf476688cf5069344f707fe190",
+    "path": "/mnt/music/music_player/.git/objects/ff/4a3b53a2e66bbf476688cf5069344f707fe190"
+  },
+  {
     "name": "info",
     "path": "/mnt/music/music_player/.git/objects/info"
   },
@@ -5796,6 +5868,10 @@
     "path": "/mnt/music/music_player/.git/refs/tags"
   },
   {
+    "name": ".gitignore",
+    "path": "/mnt/music/music_player/.gitignore"
+  },
+  {
     "name": "filebrowse.go",
     "path": "/mnt/music/music_player/filebrowse.go"
   },
@@ -5826,6 +5902,750 @@
   {
     "name": "stdoutwriter.go",
     "path": "/mnt/music/music_player/stdoutwriter.go"
+  },
+  {
+    "name": "tango",
+    "path": "/mnt/music/music_player/tango"
+  },
+  {
+    "name": "tengo",
+    "path": "/mnt/music/music_player/tango/tengo"
+  },
+  {
+    "name": ".git",
+    "path": "/mnt/music/music_player/tango/tengo/.git"
+  },
+  {
+    "name": "HEAD",
+    "path": "/mnt/music/music_player/tango/tengo/.git/HEAD"
+  },
+  {
+    "name": "branches",
+    "path": "/mnt/music/music_player/tango/tengo/.git/branches"
+  },
+  {
+    "name": "config",
+    "path": "/mnt/music/music_player/tango/tengo/.git/config"
+  },
+  {
+    "name": "description",
+    "path": "/mnt/music/music_player/tango/tengo/.git/description"
+  },
+  {
+    "name": "hooks",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks"
+  },
+  {
+    "name": "applypatch-msg.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/applypatch-msg.sample"
+  },
+  {
+    "name": "commit-msg.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/commit-msg.sample"
+  },
+  {
+    "name": "fsmonitor-watchman.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/fsmonitor-watchman.sample"
+  },
+  {
+    "name": "post-update.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/post-update.sample"
+  },
+  {
+    "name": "pre-applypatch.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-applypatch.sample"
+  },
+  {
+    "name": "pre-commit.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-commit.sample"
+  },
+  {
+    "name": "pre-merge-commit.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-merge-commit.sample"
+  },
+  {
+    "name": "pre-push.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-push.sample"
+  },
+  {
+    "name": "pre-rebase.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-rebase.sample"
+  },
+  {
+    "name": "pre-receive.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/pre-receive.sample"
+  },
+  {
+    "name": "prepare-commit-msg.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/prepare-commit-msg.sample"
+  },
+  {
+    "name": "push-to-checkout.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/push-to-checkout.sample"
+  },
+  {
+    "name": "update.sample",
+    "path": "/mnt/music/music_player/tango/tengo/.git/hooks/update.sample"
+  },
+  {
+    "name": "index",
+    "path": "/mnt/music/music_player/tango/tengo/.git/index"
+  },
+  {
+    "name": "info",
+    "path": "/mnt/music/music_player/tango/tengo/.git/info"
+  },
+  {
+    "name": "exclude",
+    "path": "/mnt/music/music_player/tango/tengo/.git/info/exclude"
+  },
+  {
+    "name": "logs",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs"
+  },
+  {
+    "name": "HEAD",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/HEAD"
+  },
+  {
+    "name": "refs",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs"
+  },
+  {
+    "name": "heads",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs/heads"
+  },
+  {
+    "name": "master",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs/heads/master"
+  },
+  {
+    "name": "remotes",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs/remotes"
+  },
+  {
+    "name": "origin",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs/remotes/origin"
+  },
+  {
+    "name": "HEAD",
+    "path": "/mnt/music/music_player/tango/tengo/.git/logs/refs/remotes/origin/HEAD"
+  },
+  {
+    "name": "objects",
+    "path": "/mnt/music/music_player/tango/tengo/.git/objects"
+  },
+  {
+    "name": "info",
+    "path": "/mnt/music/music_player/tango/tengo/.git/objects/info"
+  },
+  {
+    "name": "pack",
+    "path": "/mnt/music/music_player/tango/tengo/.git/objects/pack"
+  },
+  {
+    "name": "pack-5f5daa58db1de207a010feea23cd1e9c03532b71.idx",
+    "path": "/mnt/music/music_player/tango/tengo/.git/objects/pack/pack-5f5daa58db1de207a010feea23cd1e9c03532b71.idx"
+  },
+  {
+    "name": "pack-5f5daa58db1de207a010feea23cd1e9c03532b71.pack",
+    "path": "/mnt/music/music_player/tango/tengo/.git/objects/pack/pack-5f5daa58db1de207a010feea23cd1e9c03532b71.pack"
+  },
+  {
+    "name": "packed-refs",
+    "path": "/mnt/music/music_player/tango/tengo/.git/packed-refs"
+  },
+  {
+    "name": "refs",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs"
+  },
+  {
+    "name": "heads",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/heads"
+  },
+  {
+    "name": "master",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/heads/master"
+  },
+  {
+    "name": "remotes",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/remotes"
+  },
+  {
+    "name": "origin",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/remotes/origin"
+  },
+  {
+    "name": "HEAD",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/remotes/origin/HEAD"
+  },
+  {
+    "name": "tags",
+    "path": "/mnt/music/music_player/tango/tengo/.git/refs/tags"
+  },
+  {
+    "name": ".github",
+    "path": "/mnt/music/music_player/tango/tengo/.github"
+  },
+  {
+    "name": "workflows",
+    "path": "/mnt/music/music_player/tango/tengo/.github/workflows"
+  },
+  {
+    "name": "release.yml",
+    "path": "/mnt/music/music_player/tango/tengo/.github/workflows/release.yml"
+  },
+  {
+    "name": "test.yml",
+    "path": "/mnt/music/music_player/tango/tengo/.github/workflows/test.yml"
+  },
+  {
+    "name": ".gitignore",
+    "path": "/mnt/music/music_player/tango/tengo/.gitignore"
+  },
+  {
+    "name": ".goreleaser.yml",
+    "path": "/mnt/music/music_player/tango/tengo/.goreleaser.yml"
+  },
+  {
+    "name": "LICENSE",
+    "path": "/mnt/music/music_player/tango/tengo/LICENSE"
+  },
+  {
+    "name": "Makefile",
+    "path": "/mnt/music/music_player/tango/tengo/Makefile"
+  },
+  {
+    "name": "README.md",
+    "path": "/mnt/music/music_player/tango/tengo/README.md"
+  },
+  {
+    "name": "builtins.go",
+    "path": "/mnt/music/music_player/tango/tengo/builtins.go"
+  },
+  {
+    "name": "builtins_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/builtins_test.go"
+  },
+  {
+    "name": "bytecode.go",
+    "path": "/mnt/music/music_player/tango/tengo/bytecode.go"
+  },
+  {
+    "name": "bytecode_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/bytecode_test.go"
+  },
+  {
+    "name": "cmd",
+    "path": "/mnt/music/music_player/tango/tengo/cmd"
+  },
+  {
+    "name": "bench",
+    "path": "/mnt/music/music_player/tango/tengo/cmd/bench"
+  },
+  {
+    "name": "main.go",
+    "path": "/mnt/music/music_player/tango/tengo/cmd/bench/main.go"
+  },
+  {
+    "name": "tengo",
+    "path": "/mnt/music/music_player/tango/tengo/cmd/tengo"
+  },
+  {
+    "name": "main.go",
+    "path": "/mnt/music/music_player/tango/tengo/cmd/tengo/main.go"
+  },
+  {
+    "name": "compiler.go",
+    "path": "/mnt/music/music_player/tango/tengo/compiler.go"
+  },
+  {
+    "name": "compiler_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/compiler_test.go"
+  },
+  {
+    "name": "doc.go",
+    "path": "/mnt/music/music_player/tango/tengo/doc.go"
+  },
+  {
+    "name": "docs",
+    "path": "/mnt/music/music_player/tango/tengo/docs"
+  },
+  {
+    "name": "builtins.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/builtins.md"
+  },
+  {
+    "name": "formatting.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/formatting.md"
+  },
+  {
+    "name": "interoperability.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/interoperability.md"
+  },
+  {
+    "name": "objects.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/objects.md"
+  },
+  {
+    "name": "operators.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/operators.md"
+  },
+  {
+    "name": "runtime-types.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/runtime-types.md"
+  },
+  {
+    "name": "stdlib-base64.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-base64.md"
+  },
+  {
+    "name": "stdlib-enum.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-enum.md"
+  },
+  {
+    "name": "stdlib-fmt.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-fmt.md"
+  },
+  {
+    "name": "stdlib-hex.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-hex.md"
+  },
+  {
+    "name": "stdlib-json.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-json.md"
+  },
+  {
+    "name": "stdlib-math.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-math.md"
+  },
+  {
+    "name": "stdlib-os.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-os.md"
+  },
+  {
+    "name": "stdlib-rand.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-rand.md"
+  },
+  {
+    "name": "stdlib-text.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-text.md"
+  },
+  {
+    "name": "stdlib-times.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib-times.md"
+  },
+  {
+    "name": "stdlib.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/stdlib.md"
+  },
+  {
+    "name": "tengo-cli.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/tengo-cli.md"
+  },
+  {
+    "name": "tutorial.md",
+    "path": "/mnt/music/music_player/tango/tengo/docs/tutorial.md"
+  },
+  {
+    "name": "errors.go",
+    "path": "/mnt/music/music_player/tango/tengo/errors.go"
+  },
+  {
+    "name": "eval.go",
+    "path": "/mnt/music/music_player/tango/tengo/eval.go"
+  },
+  {
+    "name": "eval_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/eval_test.go"
+  },
+  {
+    "name": "examples",
+    "path": "/mnt/music/music_player/tango/tengo/examples"
+  },
+  {
+    "name": "interoperability",
+    "path": "/mnt/music/music_player/tango/tengo/examples/interoperability"
+  },
+  {
+    "name": "main.go",
+    "path": "/mnt/music/music_player/tango/tengo/examples/interoperability/main.go"
+  },
+  {
+    "name": "formatter.go",
+    "path": "/mnt/music/music_player/tango/tengo/formatter.go"
+  },
+  {
+    "name": "go.mod",
+    "path": "/mnt/music/music_player/tango/tengo/go.mod"
+  },
+  {
+    "name": "go.sum",
+    "path": "/mnt/music/music_player/tango/tengo/go.sum"
+  },
+  {
+    "name": "instructions.go",
+    "path": "/mnt/music/music_player/tango/tengo/instructions.go"
+  },
+  {
+    "name": "iterator.go",
+    "path": "/mnt/music/music_player/tango/tengo/iterator.go"
+  },
+  {
+    "name": "main",
+    "path": "/mnt/music/music_player/tango/tengo/main"
+  },
+  {
+    "name": "main.go",
+    "path": "/mnt/music/music_player/tango/tengo/main/main.go"
+  },
+  {
+    "name": "modules.go",
+    "path": "/mnt/music/music_player/tango/tengo/modules.go"
+  },
+  {
+    "name": "objects.go",
+    "path": "/mnt/music/music_player/tango/tengo/objects.go"
+  },
+  {
+    "name": "objects_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/objects_test.go"
+  },
+  {
+    "name": "parser",
+    "path": "/mnt/music/music_player/tango/tengo/parser"
+  },
+  {
+    "name": "ast.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/ast.go"
+  },
+  {
+    "name": "ast_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/ast_test.go"
+  },
+  {
+    "name": "expr.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/expr.go"
+  },
+  {
+    "name": "file.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/file.go"
+  },
+  {
+    "name": "opcodes.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/opcodes.go"
+  },
+  {
+    "name": "parser.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/parser.go"
+  },
+  {
+    "name": "parser_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/parser_test.go"
+  },
+  {
+    "name": "pos.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/pos.go"
+  },
+  {
+    "name": "scanner.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/scanner.go"
+  },
+  {
+    "name": "scanner_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/scanner_test.go"
+  },
+  {
+    "name": "source_file.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/source_file.go"
+  },
+  {
+    "name": "stmt.go",
+    "path": "/mnt/music/music_player/tango/tengo/parser/stmt.go"
+  },
+  {
+    "name": "require",
+    "path": "/mnt/music/music_player/tango/tengo/require"
+  },
+  {
+    "name": "require.go",
+    "path": "/mnt/music/music_player/tango/tengo/require/require.go"
+  },
+  {
+    "name": "script.go",
+    "path": "/mnt/music/music_player/tango/tengo/script.go"
+  },
+  {
+    "name": "script_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/script_test.go"
+  },
+  {
+    "name": "stdlib",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib"
+  },
+  {
+    "name": "base64.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/base64.go"
+  },
+  {
+    "name": "base64_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/base64_test.go"
+  },
+  {
+    "name": "builtin_modules.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/builtin_modules.go"
+  },
+  {
+    "name": "errors.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/errors.go"
+  },
+  {
+    "name": "fmt.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/fmt.go"
+  },
+  {
+    "name": "fmt_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/fmt_test.go"
+  },
+  {
+    "name": "func_typedefs.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/func_typedefs.go"
+  },
+  {
+    "name": "func_typedefs_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/func_typedefs_test.go"
+  },
+  {
+    "name": "gensrcmods.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/gensrcmods.go"
+  },
+  {
+    "name": "hex.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/hex.go"
+  },
+  {
+    "name": "hex_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/hex_test.go"
+  },
+  {
+    "name": "json",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json"
+  },
+  {
+    "name": "decode.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json/decode.go"
+  },
+  {
+    "name": "encode.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json/encode.go"
+  },
+  {
+    "name": "json_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json/json_test.go"
+  },
+  {
+    "name": "scanner.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json/scanner.go"
+  },
+  {
+    "name": "json.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json.go"
+  },
+  {
+    "name": "json_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/json_test.go"
+  },
+  {
+    "name": "math.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/math.go"
+  },
+  {
+    "name": "os.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/os.go"
+  },
+  {
+    "name": "os_exec.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/os_exec.go"
+  },
+  {
+    "name": "os_file.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/os_file.go"
+  },
+  {
+    "name": "os_process.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/os_process.go"
+  },
+  {
+    "name": "os_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/os_test.go"
+  },
+  {
+    "name": "rand.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/rand.go"
+  },
+  {
+    "name": "rand_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/rand_test.go"
+  },
+  {
+    "name": "source_modules.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/source_modules.go"
+  },
+  {
+    "name": "srcmod_enum.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/srcmod_enum.tengo"
+  },
+  {
+    "name": "stdlib.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/stdlib.go"
+  },
+  {
+    "name": "stdlib_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/stdlib_test.go"
+  },
+  {
+    "name": "text.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/text.go"
+  },
+  {
+    "name": "text_regexp.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/text_regexp.go"
+  },
+  {
+    "name": "text_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/text_test.go"
+  },
+  {
+    "name": "times.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/times.go"
+  },
+  {
+    "name": "times_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/stdlib/times_test.go"
+  },
+  {
+    "name": "symbol_table.go",
+    "path": "/mnt/music/music_player/tango/tengo/symbol_table.go"
+  },
+  {
+    "name": "symbol_table_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/symbol_table_test.go"
+  },
+  {
+    "name": "tengo.go",
+    "path": "/mnt/music/music_player/tango/tengo/tengo.go"
+  },
+  {
+    "name": "tengo_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/tengo_test.go"
+  },
+  {
+    "name": "testdata",
+    "path": "/mnt/music/music_player/tango/tengo/testdata"
+  },
+  {
+    "name": "cli",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli"
+  },
+  {
+    "name": "one.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/one.tengo"
+  },
+  {
+    "name": "test.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/test.tengo"
+  },
+  {
+    "name": "three.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/three.tengo"
+  },
+  {
+    "name": "two",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two"
+  },
+  {
+    "name": "five",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two/five"
+  },
+  {
+    "name": "five.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two/five/five.tengo"
+  },
+  {
+    "name": "four",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two/four"
+  },
+  {
+    "name": "four.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two/four/four.tengo"
+  },
+  {
+    "name": "two.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/cli/two/two.tengo"
+  },
+  {
+    "name": "issue286",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286"
+  },
+  {
+    "name": "dos",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos"
+  },
+  {
+    "name": "cinco",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos/cinco"
+  },
+  {
+    "name": "cinco.mshk",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos/cinco/cinco.mshk"
+  },
+  {
+    "name": "dos.mshk",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos/dos.mshk"
+  },
+  {
+    "name": "quatro",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos/quatro"
+  },
+  {
+    "name": "quatro.mshk",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/dos/quatro/quatro.mshk"
+  },
+  {
+    "name": "test.mshk",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/test.mshk"
+  },
+  {
+    "name": "tres.tengo",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/tres.tengo"
+  },
+  {
+    "name": "uno.mshk",
+    "path": "/mnt/music/music_player/tango/tengo/testdata/issue286/uno.mshk"
+  },
+  {
+    "name": "token",
+    "path": "/mnt/music/music_player/tango/tengo/token"
+  },
+  {
+    "name": "token.go",
+    "path": "/mnt/music/music_player/tango/tengo/token/token.go"
+  },
+  {
+    "name": "variable.go",
+    "path": "/mnt/music/music_player/tango/tengo/variable.go"
+  },
+  {
+    "name": "variable_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/variable_test.go"
+  },
+  {
+    "name": "vm.go",
+    "path": "/mnt/music/music_player/tango/tengo/vm.go"
+  },
+  {
+    "name": "vm_test.go",
+    "path": "/mnt/music/music_player/tango/tengo/vm_test.go"
   },
   {
     "name": "test",
