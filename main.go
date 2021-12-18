@@ -4,7 +4,7 @@ import (
     //"bufio"
     //"strings"
     //"os"
-    "strconv"
+    //"strconv"
     "os/exec"
     "log"
     "fmt"
@@ -14,13 +14,14 @@ import (
     "errors"
     gnc "github.com/rthornton128/goncurses"
     tango "github.com/StructsNotClasses/tengotango"
-    remote "github.com/StructsNotClasses/musicplayer/remote"
+    "github.com/StructsNotClasses/musicplayer/remote"
+    "github.com/StructsNotClasses/musicplayer/scriptapi"
     //tengo "github.com/d5/tengo/v2"
 )
 
 const INT32MAX = 2147483647
 const PARENT_DIRECTORY = "/mnt/music"
-const SONG_LIST_FILE = "/mnt/music/music_player/songs.json"
+const SONG_LIST_FILE = "/mnt/music/musicplayer/songs.json"
 
 type Client struct {
     backgroundWindow *gnc.Window
@@ -136,7 +137,7 @@ func playAll(songs SongList, client Client) {
         st.currentIndex = rand.Int31n(int32(len(songs)))
         drawTree(&st, client.treeWindow)
         notifier := make(chan int)
-        remoteToCurrentInstance = playFileWithMplayer(songs[st.currentIndex].Path, notifier, client.infoWindow)
+        scriptapi.RemoteToCurrentInstance = playFileWithMplayer(songs[st.currentIndex].Path, notifier, client.infoWindow)
         playback_complete := false
         for !playback_complete {
             select {
@@ -148,7 +149,7 @@ func playAll(songs SongList, client Client) {
                     switch string(user_bs) {
                     case "exit\n":
                         exit_program = true
-                        remote.SendBytes([]byte("quit\n"))
+                        scriptapi.RemoteToCurrentInstance.SendBytes([]byte("quit\n"))
                     case "current song info\n":
                         client.commandOutputWindow.Print("\nPlaying " + songs[st.currentIndex].Name)
                         client.commandOutputWindow.Refresh()
@@ -157,13 +158,7 @@ func playAll(songs SongList, client Client) {
                             client.commandOutputWindow.Print("\nSending '" + string(user_bs[5:len(user_bs) - 1]) + "'")
                             client.commandOutputWindow.Refresh()
                             mplayerCommand := user_bs[5:]
-                            remote.SendBytes(mplayerCommand)
-                        } else if string(user_bs[0:4]) == "play" {
-                            indexBytes := user_bs[5:]
-                            index, _ := strconv.Atoi(string(indexBytes))
-                            remote.SendBytes([]byte("quit\n"))
-                            _ = <- notifier
-                            remote = playFileWithMplayer(songs[index].Path, notifier, client.infoWindow)
+                            scriptapi.RemoteToCurrentInstance.SendBytes(mplayerCommand)
                         } else {
                             client.commandOutputWindow.Print("Running script: " + string(user_bs))
                             client.commandOutputWindow.Refresh()
@@ -245,7 +240,7 @@ func takeUserInputIntoChannel(window *gnc.Window, ch chan gnc.Key) {
 
 // run mplayer command "mplayer -slave -vo null <song path>"
 // the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
-func playFileWithMplayer(file string, notifier chan int, outWindow *gnc.Window) Remote {
+func playFileWithMplayer(file string, notifier chan int, outWindow *gnc.Window) remote.Remote {
     cmd := exec.Command("mplayer", 
         "-slave", "-vo", "null", "-quiet", file)   
 
@@ -256,7 +251,7 @@ func playFileWithMplayer(file string, notifier chan int, outWindow *gnc.Window) 
 
     go runWithWriter(cmd, BasicWindowWriter{outWindow}, notifier)
 
-    return Remote{pipe}
+    return remote.Remote{pipe}
 }
 
 func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan int) {
