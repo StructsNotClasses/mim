@@ -5472,6 +5472,10 @@
     "path": "/mnt/music/musicplayer/.git/objects/06"
   },
   {
+    "name": "7fdeea6771a6f4cb6857dd3bb0b168b81a820b",
+    "path": "/mnt/music/musicplayer/.git/objects/06/7fdeea6771a6f4cb6857dd3bb0b168b81a820b"
+  },
+  {
     "name": "976cc9b41ead6488afae8ecbe9480e29d0ffd7",
     "path": "/mnt/music/musicplayer/.git/objects/06/976cc9b41ead6488afae8ecbe9480e29d0ffd7"
   },
@@ -5636,6 +5640,10 @@
     "path": "/mnt/music/musicplayer/.git/objects/4c"
   },
   {
+    "name": "5b22b86c1597ea88a0afcb415ed2b3e942f5bc",
+    "path": "/mnt/music/musicplayer/.git/objects/4c/5b22b86c1597ea88a0afcb415ed2b3e942f5bc"
+  },
+  {
     "name": "965439048da5678526bbd11bd007cb682560e6",
     "path": "/mnt/music/musicplayer/.git/objects/4c/965439048da5678526bbd11bd007cb682560e6"
   },
@@ -5646,6 +5654,14 @@
   {
     "name": "0167a14628d2fe686e524602b1e5129304fa7c",
     "path": "/mnt/music/musicplayer/.git/objects/54/0167a14628d2fe686e524602b1e5129304fa7c"
+  },
+  {
+    "name": "58",
+    "path": "/mnt/music/musicplayer/.git/objects/58"
+  },
+  {
+    "name": "40205b53ca7d594d94ad17029c589d9682e3ea",
+    "path": "/mnt/music/musicplayer/.git/objects/58/40205b53ca7d594d94ad17029c589d9682e3ea"
   },
   {
     "name": "5c",
@@ -5680,6 +5696,22 @@
     "path": "/mnt/music/musicplayer/.git/objects/66/3db7f8725a03c9013c6e2f21ce60c8311ad27c"
   },
   {
+    "name": "69",
+    "path": "/mnt/music/musicplayer/.git/objects/69"
+  },
+  {
+    "name": "aacca8d9fb2143bad78b5e61b783f57cfe2d45",
+    "path": "/mnt/music/musicplayer/.git/objects/69/aacca8d9fb2143bad78b5e61b783f57cfe2d45"
+  },
+  {
+    "name": "6f",
+    "path": "/mnt/music/musicplayer/.git/objects/6f"
+  },
+  {
+    "name": "5e0b0d191d4dcc65b510de4ad0123105d4dfb0",
+    "path": "/mnt/music/musicplayer/.git/objects/6f/5e0b0d191d4dcc65b510de4ad0123105d4dfb0"
+  },
+  {
     "name": "70",
     "path": "/mnt/music/musicplayer/.git/objects/70"
   },
@@ -5710,6 +5742,10 @@
   {
     "name": "b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093",
     "path": "/mnt/music/musicplayer/.git/objects/7d/b3fb7a9a2ec5ae8ab346a9a5d27e2bb021d093"
+  },
+  {
+    "name": "b4fe0a0bc650af5dde121c00fb00c1dc53124c",
+    "path": "/mnt/music/musicplayer/.git/objects/7d/b4fe0a0bc650af5dde121c00fb00c1dc53124c"
   },
   {
     "name": "80",
@@ -5820,6 +5856,14 @@
     "path": "/mnt/music/musicplayer/.git/objects/b2/a215af59fb87c2458279bdee6eb30ca056c415"
   },
   {
+    "name": "b3",
+    "path": "/mnt/music/musicplayer/.git/objects/b3"
+  },
+  {
+    "name": "d9087660814cc409710bf9589850a1d600e0e1",
+    "path": "/mnt/music/musicplayer/.git/objects/b3/d9087660814cc409710bf9589850a1d600e0e1"
+  },
+  {
     "name": "b4",
     "path": "/mnt/music/musicplayer/.git/objects/b4"
   },
@@ -5874,6 +5918,14 @@
   {
     "name": "f6f14a96524a391dca2799726ac5c2acc6245f",
     "path": "/mnt/music/musicplayer/.git/objects/d0/f6f14a96524a391dca2799726ac5c2acc6245f"
+  },
+  {
+    "name": "d8",
+    "path": "/mnt/music/musicplayer/.git/objects/d8"
+  },
+  {
+    "name": "7ffd2ffc04570dfb0037c8bc5d6889fb482147",
+    "path": "/mnt/music/musicplayer/.git/objects/d8/7ffd2ffc04570dfb0037c8bc5d6889fb482147"
   },
   {
     "name": "e5",
@@ -5996,6 +6048,10 @@
     "path": "/mnt/music/musicplayer/go.sum"
   },
   {
+    "name": "instance.go",
+    "path": "/mnt/music/musicplayer/instance.go"
+  },
+  {
     "name": "main.go",
     "path": "/mnt/music/musicplayer/main.go"
   },
@@ -6008,12 +6064,12 @@
     "path": "/mnt/music/musicplayer/remote/remote.go"
   },
   {
-    "name": "scriptapi",
-    "path": "/mnt/music/musicplayer/scriptapi"
+    "name": "song",
+    "path": "/mnt/music/musicplayer/song"
   },
   {
-    "name": "script_api.go",
-    "path": "/mnt/music/musicplayer/scriptapi/script_api.go"
+    "name": "song.go",
+    "path": "/mnt/music/musicplayer/song/song.go"
   },
   {
     "name": "songs.json",
@@ -6918,6 +6974,22 @@
   {
     "name": "Tame Impala_The Slow Rush_1-12_One More Hour.flac",
     "path": "/mnt/music/tame_impala/flacs/The Slow Rush/Tame Impala_The Slow Rush_1-12_One More Hour.flac"
+  },
+  {
+    "name": "tengofuckery",
+    "path": "/mnt/music/tengofuckery"
+  },
+  {
+    "name": "go.mod",
+    "path": "/mnt/music/tengofuckery/go.mod"
+  },
+  {
+    "name": "go.sum",
+    "path": "/mnt/music/tengofuckery/go.sum"
+  },
+  {
+    "name": "tengofuckery.go",
+    "path": "/mnt/music/tengofuckery/tengofuckery.go"
   },
   {
     "name": "test.mp3",

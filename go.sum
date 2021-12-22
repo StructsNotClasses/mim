@@ -1,2 +1,4 @@
+github.com/d5/tengo/v2 v2.10.0 h1:gR3VwfJDBlffV8WzfSNNJ7WJtWduwbTKlAu14cA2fRs=
+github.com/d5/tengo/v2 v2.10.0/go.mod h1:XRGjEs5I9jYIKTxly6HCF8oiiilk5E/RYXOZ5b0DZC8=
 github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9 h1:mjwRuqAmPmVMlZUSSPUhvCl3Hg4TjP5xlrSDfcyXBFY=
 github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9/go.mod h1:AHlKFomPTwmO7H2vL8d7VNrQNQmhMi/DBhDnHRhjbCo=

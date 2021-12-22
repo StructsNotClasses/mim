@@ -1,11 +1,11 @@
 package main
 
 import (
-    gnc "github.com/rthornton128/goncurses"
+	gnc "github.com/rthornton128/goncurses"
 )
 
 type BasicWindowWriter struct {
-    outWindow *gnc.Window
+	outWindow *gnc.Window
 }
 
 /*func Mkfakesub(win *gnc.Window) (*gnc.Window, error) {
@@ -22,13 +22,13 @@ type BasicWindowWriter struct {
 }*/
 
 func (w BasicWindowWriter) Write(bs []byte) (n int, err error) {
-    w.outWindow.Print(string(bs))
-    w.outWindow.Refresh()
-    return len(bs), nil
+	w.outWindow.Print(string(bs))
+	w.outWindow.Refresh()
+	return len(bs), nil
 }
 
 func (w BasicWindowWriter) Close() error {
-    //don't close fptr because this causes issues when it's stdout
-    //needs to be fixed before used for other outputs
-    return nil
+	//don't close fptr because this causes issues when it's stdout
+	//needs to be fixed before used for other outputs
+	return nil
 }

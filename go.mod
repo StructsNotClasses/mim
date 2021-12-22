@@ -8,9 +8,11 @@ replace musicplayer/github.com/d5/tengo/v2 v2.0.0 => ./tengo
 //require musicplayer/tengo v0.0.0
 
 replace github.com/StructsNotClasses/tengotango => /home/pugpugpugs/tengotango/
-replace github.com/StructsNotclasses/musicplayer => /mnt/music/music_player/
+
+replace github.com/StructsNotClasses/musicplayer => /mnt/music/musicplayer/
 
 require (
 	github.com/StructsNotClasses/tengotango v1.24.8 // indirect
+	github.com/d5/tengo/v2 v2.10.0 // indirect
 	github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9 // indirect
 )
