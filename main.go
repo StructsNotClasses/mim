@@ -2,14 +2,15 @@ package main
 
 import (
 	"github.com/StructsNotClasses/musicplayer/remote"
+	"github.com/StructsNotClasses/musicplayer/safebool"
 	"github.com/StructsNotClasses/musicplayer/song"
 
 	gnc "github.com/rthornton128/goncurses"
 
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
-	"math/rand"
 	"os/exec"
 )
 
@@ -40,63 +41,110 @@ func main() {
 	defer gnc.End()
 
 	gnc.CBreak(true)
-    //gnc.Keypad(true)
+	//gnc.Keypad(true)
 	gnc.Echo(false)
 	backgroundWindow.Keypad(true)
 
-	playAll(songs, createInstance(backgroundWindow, songs))
+	run(createInstance(backgroundWindow, songs))
 }
 
-func playAll(songs song.List, instance Instance) {
-	user_input_ch := make(chan gnc.Key)
-	go takeUserInputIntoChannel(instance.client.backgroundWindow, user_input_ch)
+func run(instance Instance) {
+	for !instance.state.exit {
+		select {
+		case userByte := <-instance.userInputChannel:
+            // if in character mode, run the script bound to the received key and skip the rest
+            // (currently the colon key could be bound to something haha)
+            if script, ok := instance.bindMap[userByte]; ok && !instance.state.mode {
+                instance.client.commandOutputWindow.Print("Running script: " + string(script))
+                instance.client.commandOutputWindow.Refresh()
+                instance.runBytesAsScript(script)
+                continue
+            }
 
-	user_bs := []byte{}
-	exit_program := false
+            // use the colon key to unset character mode instantly
+            if userByte == ':' {
+                instance.state.mode = true
+            } 
 
-	for !exit_program {
-		r := rand.Int31n(int32(len(songs)))
-		instance.PlayIndex(int(r))
-		for instance.playbackInProgress {
-			select {
-			case user_b := <-user_input_ch:
+            if userByte == 263 {
                 // if backspace remove last byte from slice
-                if user_b == 263 {
-                    if len(user_bs) == 1 {
-                        user_bs = []byte{}
-                    } else if len(user_bs) > 0 {
-                        user_bs = user_bs[:len(user_bs) - 1]
+				instance.state.line = tryPopByte(instance.state.line)
+			} else {
+                // for any other character add it to the line buffer
+				instance.state.line = append(instance.state.line, byte(userByte))
+			}
+
+			replaceCurrentLine(instance.client.commandInputWindow, instance.state.line)
+			if userByte == '\n' {
+                // handle single line no argument commands
+                switch string(instance.state.line) {
+                case ":exit\n":
+					instance.state.exit = true
+					instance.currentRemote.SendString("quit\n")
+                case ":end\n":
+					instance.manageByteScript(instance.state.lines)
+					instance.state.lines = []byte{}
+                case ":on_no_playback\n":
+					instance.state.onPlaybackBeingSet = true
+                case "debug_print_buffer":
+					instance.client.commandOutputWindow.Printf("line: '%s'\nbytes: '%s'\n", string(instance.state.line), string(instance.state.lines))
+					instance.client.commandOutputWindow.Refresh()
+				case ":character_mode\n":
+					instance.state.mode = false
+                default:
+                    // handle single line commands with arguments
+                    switch string(instance.state.line[0:5]) {
+                    case ":load":
+                        fileName := string(instance.state.line[6 : len(instance.state.line)-1])
+                        bytes, err := ioutil.ReadFile(fileName)
+                        if err != nil {
+                            instance.client.commandOutputWindow.Printf("load: Failed to load file '%s' with error '%v'\n", fileName, err)
+                            instance.client.commandOutputWindow.Refresh()
+                        } else {
+                            instance.manageByteScript(bytes)
+                        }
+                    case ":bind":
+                        // these commands should follow the format
+                        // :bind <character>
+                        // <script>
+                        // :end
+                        instance.state.bindChar = gnc.Key(instance.state.line[6])
+                        instance.state.lines = []byte{}
+                    default:
+                        instance.state.lines = append(instance.state.lines, instance.state.line...)
                     }
-                } else {
-                    user_bs = append(user_bs, byte(user_b))
-                }
-                y, _ := instance.client.commandInputWindow.CursorYX()
-                clearLine(y, instance.client.commandInputWindow)
-                instance.client.commandInputWindow.MovePrint(y, 0, string(user_bs))
-                instance.client.commandInputWindow.Refresh()
-				if user_b == '\n' || user_b == '\r' {
-					switch string(user_bs) {
-					case "exit\n":
-						exit_program = true
-						instance.currentRemote.SendString("quit\n")
-					default:
-						instance.client.commandOutputWindow.Print("Running script: " + string(user_bs))
-						instance.client.commandOutputWindow.Refresh()
-						instance.runBytesAsScript(user_bs)
-					}
-					user_bs = []byte{}
-				}
-			case <-instance.notifier:
-				instance.playbackInProgress = false
+                } 
+                //always clear the line buffer
+                instance.state.line = []byte{}
 			}
 			instance.client.backgroundWindow.Refresh()
+        default:
+            // run the script for when no song is playing if neccesary
+            if !instance.playbackInProgress.Get() && len(instance.runOnNoPlayback) > 0 {
+                instance.client.commandOutputWindow.Print("Running script: " + string(instance.runOnNoPlayback))
+                instance.client.commandOutputWindow.Refresh()
+                instance.runBytesAsScript(instance.runOnNoPlayback)
+            }
 		}
 	}
 }
 
-func clearLine(y int, win *gnc.Window) {
-    _, w := win.MaxYX()
-    win.HLine(y, 0, ' ', w)
+func tryPopByte(bytes []byte) []byte {
+	if len(bytes) == 1 {
+		return []byte{}
+	} else if len(bytes) > 0 {
+		return bytes[:len(bytes)-1]
+	}
+	return bytes
+}
+
+func replaceCurrentLine(win *gnc.Window, bs []byte) {
+    s := string(bs)
+    y, _ := win.CursorYX()
+	_, w := win.MaxYX()
+	win.HLine(y, 0, ' ', w)
+    win.MovePrint(y, 0, s)
+    win.Refresh()
 }
 
 func handleRuntimeError(outputWindow *gnc.Window) {
@@ -113,7 +161,7 @@ func takeUserInputIntoChannel(window *gnc.Window, ch chan gnc.Key) {
 
 // run mplayer command "mplayer -slave -vo null <song path>"
 // the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
-func playFileWithMplayer(file string, notifier chan int, outWindow *gnc.Window) remote.Remote {
+func playFileWithMplayer(file string, playbackInProgress *safebool.SafeBool, outWindow *gnc.Window) remote.Remote {
 	cmd := exec.Command("mplayer",
 		"-slave", "-vo", "null", "-quiet", file)
 
@@ -122,12 +170,12 @@ func playFileWithMplayer(file string, notifier chan int, outWindow *gnc.Window) 
 		log.Fatal(err)
 	}
 
-	go runWithWriter(cmd, BasicWindowWriter{outWindow}, notifier)
+	go runWithWriter(cmd, BasicWindowWriter{outWindow}, playbackInProgress)
 
 	return remote.Remote{pipe}
 }
 
-func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan int) {
+func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, boolWrapper *safebool.SafeBool) { // notifier chan int) {
 	cmd.Stdout = w
 
 	err := cmd.Run()
@@ -135,6 +183,6 @@ func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan int) {
 		log.Fatal(err)
 	}
 
-	notifier <- 1
+	boolWrapper.Set(false)
 	w.Close()
 }

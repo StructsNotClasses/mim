@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/StructsNotClasses/musicplayer/remote"
+	"github.com/StructsNotClasses/musicplayer/safebool"
 	"github.com/StructsNotClasses/musicplayer/song"
 
 	"github.com/d5/tengo/v2"
@@ -10,8 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-    "math/rand"
-    "time"
+	"math/rand"
+	"time"
 )
 
 type Client struct {
@@ -22,12 +23,26 @@ type Client struct {
 	commandOutputWindow *gnc.Window
 }
 
+type Script []byte
+
+type UserStateMachine struct {
+    line []byte
+    lines []byte
+	bindChar           gnc.Key
+	onPlaybackBeingSet bool
+	mode bool
+    exit bool
+}
+
 type Instance struct {
 	client             Client
 	tree               song.Tree
 	currentRemote      remote.Remote
-	notifier           chan int
-	playbackInProgress bool
+	playbackInProgress safebool.SafeBool
+	userInputChannel   chan gnc.Key
+	bindMap            map[gnc.Key]Script
+	runOnNoPlayback    []byte
+	state              UserStateMachine
 }
 
 func createClient(scr *gnc.Window) (Client, error) {
@@ -103,8 +118,39 @@ func createInstance(scr *gnc.Window, songs song.List) Instance {
 		CurrentAtTop: 0,
 	}
 	instance.currentRemote = remote.Remote{}
-	instance.notifier = make(chan int)
+	instance.playbackInProgress = safebool.New(false)
+
+	instance.userInputChannel = make(chan gnc.Key)
+	go takeUserInputIntoChannel(instance.client.backgroundWindow, instance.userInputChannel)
+
+	instance.bindMap = make(map[gnc.Key]Script)
+
+	instance.state = UserStateMachine{
+		bindChar:           0,
+		onPlaybackBeingSet: false,
+        mode: true,
+        exit: false,
+	}
+
 	return instance
+}
+
+func (instance *Instance) manageByteScript(script []byte) {
+	if instance.state.bindChar != 0 {
+		instance.client.commandOutputWindow.Printf("Binding script: %s to character %c\n", string(script), instance.state.bindChar)
+		instance.client.commandOutputWindow.Refresh()
+		instance.bindMap[instance.state.bindChar] = script
+		instance.state.bindChar = 0
+	} else if instance.state.onPlaybackBeingSet {
+		instance.client.commandOutputWindow.Println("Setting script to run when no songs are playing: " + string(script))
+		instance.client.commandOutputWindow.Refresh()
+		instance.runOnNoPlayback = script
+		instance.state.onPlaybackBeingSet = false
+	} else {
+		instance.client.commandOutputWindow.Println("Running script: " + string(script))
+		instance.client.commandOutputWindow.Refresh()
+		instance.runBytesAsScript(script)
+	}
 }
 
 func (i *Instance) runBytesAsScript(bs []byte) {
@@ -112,11 +158,13 @@ func (i *Instance) runBytesAsScript(bs []byte) {
 
 	script := tengo.NewScript(bs)
 	script.Add("send", i.TengoSend)
+	script.Add("selectIndex", i.TengoSelectIndex)
+	script.Add("playSelected", i.TengoPlaySelected)
 	script.Add("playIndex", i.TengoPlayIndex)
-    script.Add("songCount", i.TengoSongCount)
-    script.Add("infoPrint", i.TengoInfoPrint)
-    script.Add("currentIndex", i.TengoCurrentIndex)
-    script.Add("randomIndex", i.TengoRandomIndex)
+	script.Add("songCount", i.TengoSongCount)
+	script.Add("infoPrint", i.TengoInfoPrint)
+	script.Add("currentIndex", i.TengoCurrentIndex)
+	script.Add("randomIndex", i.TengoRandomIndex)
 
 	bytecode, err := script.Compile()
 	if err != nil {
@@ -144,11 +192,37 @@ func (i *Instance) TengoSend(args ...tengo.Object) (tengo.Object, error) {
 		return nil, nil
 	} else {
 		return nil, tengo.ErrInvalidArgumentType{
-			Name:     "string argument",
+			Name:     "'send' argument",
 			Expected: "string",
 			Found:    args[0].TypeName(),
 		}
 	}
+}
+
+func (i *Instance) TengoSelectIndex(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 1 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+	if v, ok := args[0].(*tengo.Int); ok {
+		asInt := v.Value
+		i.tree.Select(int32(asInt), i.client.treeWindow)
+		i.tree.Draw(i.client.treeWindow)
+		return nil, nil
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'selectIndex' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
+}
+
+func (i *Instance) TengoPlaySelected(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 0 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+	err := i.PlayIndex(int(i.tree.CurrentIndex))
+	return nil, err
 }
 
 func (i *Instance) TengoPlayIndex(args ...tengo.Object) (tengo.Object, error) {
@@ -165,33 +239,33 @@ func (i *Instance) TengoPlayIndex(args ...tengo.Object) (tengo.Object, error) {
 }
 
 func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
-    if len(args) != 0 {
+	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
-    }
-    return &tengo.Int{Value: int64(len(i.tree.Songs))}, nil
+	}
+	return &tengo.Int{Value: int64(len(i.tree.Songs))}, nil
 }
 
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
-    for _, item := range args {
-        if value, ok := item.(*tengo.String); ok {
-            i.client.commandOutputWindow.Print(value) 
-            i.client.commandOutputWindow.Refresh()
-        }
-    }
-    return nil, nil
+	for _, item := range args {
+		if value, ok := item.(*tengo.String); ok {
+			i.client.commandOutputWindow.Print(value)
+			i.client.commandOutputWindow.Refresh()
+		}
+	}
+	return nil, nil
 }
 
 func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error) {
-    if len(args) != 0 {
-        return nil, tengo.ErrWrongNumArguments
-    }
-    return &tengo.Int{Value: int64(i.tree.CurrentIndex)}, nil
+	if len(args) != 0 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+	return &tengo.Int{Value: int64(i.tree.CurrentIndex)}, nil
 }
 
 // TengoRandomIndex returns a random number that is a valid song index. It requires random to already be seeded.
 func (i *Instance) TengoRandomIndex(args ...tengo.Object) (tengo.Object, error) {
-    rnum := rand.Int31n(int32(len(i.tree.Songs)))
-    return &tengo.Int{Value: int64(rnum)}, nil
+	rnum := rand.Int31n(int32(len(i.tree.Songs)))
+	return &tengo.Int{Value: int64(rnum)}, nil
 }
 
 func (i *Instance) PlayIndex(index int) error {
@@ -201,15 +275,13 @@ func (i *Instance) PlayIndex(index int) error {
 	}
 	i.tree.Select(int32(index), i.client.treeWindow)
 	i.tree.Draw(i.client.treeWindow)
-	i.currentRemote = playFileWithMplayer(i.tree.Songs[i.tree.CurrentIndex].Path, i.notifier, i.client.infoWindow)
-	i.playbackInProgress = true
+	i.currentRemote = playFileWithMplayer(i.tree.Songs[i.tree.CurrentIndex].Path, &i.playbackInProgress, i.client.infoWindow)
+	i.playbackInProgress.Set(true)
 	return nil
 }
 
 func (i *Instance) StopPlayback() {
-	if i.playbackInProgress {
+	if i.playbackInProgress.Get() {
 		i.currentRemote.SendString("quit\n")
-		<-i.notifier
-		i.playbackInProgress = false
 	}
 }
