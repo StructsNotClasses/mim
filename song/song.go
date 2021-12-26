@@ -23,6 +23,25 @@ type Tree struct {
     CurrentAtTop int32
 }
 
+type Directory struct {
+    Subdirectories []Directory
+    Files []Song
+}
+
+/* this is the goal
+type Album struct {
+    Songs []Song
+}
+
+type Artist struct {
+    Albums []Album
+}
+
+type Tree struct {
+    Artists []Artist
+}
+*/
+
 func CreateList(path string) (List, error) {
 	s := List([]Song{})
 
@@ -33,6 +52,22 @@ func CreateList(path string) (List, error) {
 
 	err = json.Unmarshal(bytes, &s)
 	return s, err
+}
+
+func CreateDirectory(path string) (d Directory, err error) {
+    entries, err := os.ReadDir(path)
+    if err != nil {
+        return
+    }
+
+    for _, entry := range(entries) {
+        info, err := entry.Info()
+        if entry.IsDir() {
+            subdir, err := CreateDirectory(path)
+            d.Directories = append(d.Directories, )
+        } else {
+        }
+    }
 }
 
 func (s *List) AddFile(path string, info os.FileInfo, err error) error {

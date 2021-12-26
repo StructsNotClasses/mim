@@ -1,0 +1,7 @@
+:on_no_playback
+:load shuffle.tengo
+:bind p
+:load pause.tengo
+:bind q
+:load skip.tengo
+:char_mode
