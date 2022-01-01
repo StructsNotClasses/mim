@@ -30,7 +30,10 @@ func (i *Instance) TengoSelectIndex(args ...tengo.Object) (tengo.Object, error) 
 	}
 	if v, ok := args[0].(*tengo.Int); ok {
 		asInt := v.Value
-		i.tree.Select(int32(asInt), i.client.treeWindow)
+        err := i.tree.SelectIndex(int(asInt))
+        if err != nil {
+            return nil, err
+        }
 		i.tree.Draw(i.client.treeWindow)
 		return nil, nil
 	} else {
@@ -67,7 +70,7 @@ func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	return &tengo.Int{Value: int64(len(i.tree.Songs))}, nil
+	return &tengo.Int{Value: int64(len(i.tree.OrderedArray))}, nil
 }
 
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
@@ -89,6 +92,6 @@ func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error)
 
 // TengoRandomIndex returns a random number that is a valid song index. It requires random to already be seeded.
 func (i *Instance) TengoRandomIndex(args ...tengo.Object) (tengo.Object, error) {
-	rnum := rand.Int31n(int32(len(i.tree.Songs)))
+	rnum := rand.Int31n(int32(len(i.tree.OrderedArray)))
 	return &tengo.Int{Value: int64(rnum)}, nil
 }

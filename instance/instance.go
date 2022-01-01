@@ -2,7 +2,7 @@ package instance
 
 import (
 	"github.com/StructsNotClasses/musicplayer/remote"
-	"github.com/StructsNotClasses/musicplayer/song"
+	"github.com/StructsNotClasses/musicplayer/musictree"
 	"github.com/StructsNotClasses/musicplayer/instance/playback"
 	"github.com/StructsNotClasses/musicplayer/instance/notification"
 
@@ -40,7 +40,7 @@ type UserStateMachine struct {
 
 type Instance struct {
 	client             Client
-	tree               song.Tree
+	tree               musictree.MusicTree
 	currentRemote      remote.Remote
 	bindMap            map[gnc.Key]Script
 	runOnNoPlayback    []byte
@@ -49,11 +49,11 @@ type Instance struct {
     notifier chan notification.Notification
 }
 
-func New(scr *gnc.Window, songs song.List) Instance {
+func New(scr *gnc.Window, tree musictree.MusicTree) Instance {
     //make user input non-blocking
     scr.Timeout(0)
 
-	if len(songs) > INT32MAX {
+	if len(tree.OrderedArray) > INT32MAX {
 		log.Fatal(fmt.Sprintf("Cannot play more than %d songs at a time.", INT32MAX))
 	}
 
@@ -65,11 +65,7 @@ func New(scr *gnc.Window, songs song.List) Instance {
 		log.Fatal(err)
 	}
 	instance.client = client
-	instance.tree = song.Tree{
-		Songs:        songs,
-		CurrentIndex: 0,
-		CurrentAtTop: 0,
-	}
+	instance.tree = tree
 	instance.currentRemote = remote.Remote{}
 
 	instance.bindMap = make(map[gnc.Key]Script)
@@ -235,12 +231,19 @@ func (i *Instance) runBytesAsScript(bs []byte) {
 
 func (i *Instance) PlayIndex(index int) error {
 	i.StopPlayback()
-	if index < 0 || index >= len(i.tree.Songs) {
-		return errors.New(fmt.Sprintf("musicplayer: song index out of range %v", index))
+	if index < 0 || index >= len(i.tree.OrderedArray) {
+		return errors.New(fmt.Sprintf("musicplayer: index out of range %v", index))
 	}
-	i.tree.Select(int32(index), i.client.treeWindow)
+    err := i.tree.SelectIndex(index)
+    if err != nil {
+        return err
+    }
 	i.tree.Draw(i.client.treeWindow)
-	i.currentRemote = playFileWithMplayer(i.tree.Songs[i.tree.CurrentIndex].Path, i.notifier, i.client.infoWindow)
+    path, err := i.tree.OrderedArray[i.tree.CurrentIndex].Path()
+    if err != nil {
+        return err
+    }
+	i.currentRemote = playFileWithMplayer(path, i.notifier, i.client.infoWindow)
     //wait for the above function to send a signal that playback began
     i.playbackState.ReceiveBlocking(i.notifier)
 	return nil
