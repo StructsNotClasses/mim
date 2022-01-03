@@ -3,8 +3,8 @@ package instance
 import (
 	"github.com/d5/tengo/v2"
 
-    "math/rand"
-) 
+	"math/rand"
+)
 
 func (i *Instance) TengoSend(args ...tengo.Object) (tengo.Object, error) {
 	if len(args) != 1 {
@@ -30,10 +30,7 @@ func (i *Instance) TengoSelectIndex(args ...tengo.Object) (tengo.Object, error) 
 	}
 	if v, ok := args[0].(*tengo.Int); ok {
 		asInt := v.Value
-        err := i.tree.SelectIndex(int(asInt))
-        if err != nil {
-            return nil, err
-        }
+		i.tree.Select(int(asInt))
 		i.tree.Draw(i.client.treeWindow)
 		return nil, nil
 	} else {
@@ -49,7 +46,7 @@ func (i *Instance) TengoPlaySelected(args ...tengo.Object) (tengo.Object, error)
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	err := i.PlayIndex(int(i.tree.CurrentIndex))
+	err := i.PlayIndex(int(i.tree.currentIndex))
 	return nil, err
 }
 
@@ -70,7 +67,7 @@ func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	return &tengo.Int{Value: int64(len(i.tree.OrderedArray))}, nil
+	return &tengo.Int{Value: int64(len(i.tree.array))}, nil
 }
 
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
@@ -87,11 +84,31 @@ func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error)
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	return &tengo.Int{Value: int64(i.tree.CurrentIndex)}, nil
+	return &tengo.Int{Value: int64(i.tree.currentIndex)}, nil
 }
 
 // TengoRandomIndex returns a random number that is a valid song index. It requires random to already be seeded.
 func (i *Instance) TengoRandomIndex(args ...tengo.Object) (tengo.Object, error) {
-	rnum := rand.Int31n(int32(len(i.tree.OrderedArray)))
+	rnum := rand.Int31n(int32(len(i.tree.array)))
 	return &tengo.Int{Value: int64(rnum)}, nil
+}
+
+func (i *Instance) TengoSelectUp(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 0 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	i.tree.SelectUp()
+	i.tree.Draw(i.client.treeWindow)
+	return nil, nil
+}
+
+func (i *Instance) TengoSelectDown(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 0 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	i.tree.SelectDown()
+	i.tree.Draw(i.client.treeWindow)
+	return nil, nil
 }

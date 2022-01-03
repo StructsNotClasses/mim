@@ -1,16 +1,16 @@
 package instance
 
 import (
+	"github.com/StructsNotClasses/musicplayer/instance/notification"
 	"github.com/StructsNotClasses/musicplayer/remote"
 	"github.com/StructsNotClasses/musicplayer/windowwriter"
-	"github.com/StructsNotClasses/musicplayer/instance/notification"
 
 	gnc "github.com/rthornton128/goncurses"
 
-    "io"
-    "log"
-    "fmt"
-    "os/exec"
+	"fmt"
+	"io"
+	"log"
+	"os/exec"
 )
 
 func pop(bytes []byte) []byte {
@@ -24,17 +24,17 @@ func pop(bytes []byte) []byte {
 // replaceCurrentLine erases the current line on the window and prints a new one
 // the new string's byte array could potentially contain a newline, which means this can replace the line with multiple lines
 func replaceCurrentLine(win *gnc.Window, bs []byte) {
-    s := string(bs)
-    y, _ := win.CursorYX()
+	s := string(bs)
+	y, _ := win.CursorYX()
 	_, w := win.MaxYX()
 	win.HLine(y, 0, ' ', w)
-    win.MovePrint(y, 0, s)
-    win.Refresh()
+	win.MovePrint(y, 0, s)
+	win.Refresh()
 }
 
 func windowPrintRuntimeError(outputWindow *gnc.Window) {
 	if runtimeError := recover(); runtimeError != nil {
-        outputWindow.Print(fmt.Sprintf("\nruntime error: %s\n", runtimeError))
+		outputWindow.Print(fmt.Sprintf("\nruntime error: %s\n", runtimeError))
 	}
 }
 
@@ -55,7 +55,7 @@ func playFileWithMplayer(file string, notifier chan notification.Notification, o
 }
 
 func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan notification.Notification) { // notifier chan int) {
-    notifier <- notification.PlaybackBegan
+	notifier <- notification.PlaybackBegan
 	cmd.Stdout = w
 
 	err := cmd.Run()
@@ -63,6 +63,6 @@ func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan notification.N
 		log.Fatal(err)
 	}
 
-    notifier <- notification.PlaybackEnded
+	notifier <- notification.PlaybackEnded
 	w.Close()
 }

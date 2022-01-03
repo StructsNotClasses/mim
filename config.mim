@@ -4,4 +4,10 @@
 :load pause.tengo
 :bind q
 :load skip.tengo
+:bind k
+selectUp()
+:end
+:bind j
+selectDown()
+:end
 :char_mode
