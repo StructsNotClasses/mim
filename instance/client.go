@@ -36,7 +36,7 @@ func createClient(scr *gnc.Window) (Client, error) {
 	if err != nil {
 		return Client{}, err
 	}
-	treeWindow.ScrollOk(true)
+	//treeWindow.ScrollOk(true)
 
 	//create the window that allows user input
 	commandInputWindow, err := gnc.NewWindow(COMMAND_INPUT_HEIGHT, commandWindowsWidth, topWindowHeight+COMMAND_OUTPUT_HEIGHT+3*BORDER_WIDTH, BORDER_WIDTH)

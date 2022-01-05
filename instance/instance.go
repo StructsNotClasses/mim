@@ -217,6 +217,10 @@ func (i *Instance) runBytesAsScript(bs []byte) {
 	script.Add("randomIndex", i.TengoRandomIndex)
 	script.Add("selectUp", i.TengoSelectUp)
 	script.Add("selectDown", i.TengoSelectDown)
+    script.Add("selectEnclosing", i.TengoSelectEnclosing)
+	script.Add("toggle", i.TengoToggleDirExpansion)
+    script.Add("isDir", i.TengoIsDir)
+    script.Add("selectedIsDir", i.TengoSelectedIsDir)
 
 	bytecode, err := script.Compile()
 	if err != nil {

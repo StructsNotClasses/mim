@@ -4,10 +4,20 @@
 :load pause.tengo
 :bind q
 :load skip.tengo
+:bind j
+selectDown()
+:end
 :bind k
 selectUp()
 :end
-:bind j
-selectDown()
+:bind h
+selectEnclosing()
+:end
+:bind l
+if selectedIsDir() {
+    toggle(currentIndex())
+} else {
+    playSelected()
+}
 :end
 :char_mode

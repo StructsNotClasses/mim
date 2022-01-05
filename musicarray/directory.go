@@ -7,3 +7,7 @@ type Directory struct {
 	EndDirectoryIndex  int
 	ItemCount          int
 }
+
+func (d Directory) Expanded() bool {
+    return d.ManuallyExpanded || d.AutoExpanded
+}

@@ -3,6 +3,8 @@ package instance
 import (
 	"github.com/StructsNotClasses/musicplayer/musicarray"
 
+    "strings"
+
 	gnc "github.com/rthornton128/goncurses"
 )
 
@@ -17,33 +19,46 @@ func (t *DirTree) SelectUp() {
 	}
 
 	current := t.array[t.currentIndex]
-	if current.Type == musicarray.DirectoryEntry && current.Dir.PrevDirectoryIndex >= 0 {
-		t.Select(current.Dir.PrevDirectoryIndex)
-	} else if t.array[t.currentIndex-1].Depth > current.Depth {
-		i := t.currentIndex - 1
-		for ; t.array[i].Depth > current.Depth; i-- {
-		}
-		t.Select(i)
-	} else {
-		t.Select(t.currentIndex - 1)
-	}
+    // start at the entry one index up and search for the first entry inside only expanded directories without increasing depth
+    lowest := t.currentIndex - 1
+    maxDepth := t.array[lowest].Depth
+    for i := lowest; t.array[i].Depth >= current.Depth; i-- {
+        if t.array[i].Depth >= maxDepth {
+            continue
+        }
+        if t.array[i].Type == musicarray.DirectoryEntry {
+            maxDepth = t.array[i].Depth
+            if !t.array[i].Dir.ManuallyExpanded && !t.array[i].Dir.AutoExpanded {
+                lowest = i
+            }
+        }
+    }
+    t.Select(lowest)
 }
 
 func (t *DirTree) SelectDown() {
-	if t.currentIndex >= len(t.array)-1 {
+	if t.currentIndex + 1 >= len(t.array) {
 		return
 	}
 
 	current := t.array[t.currentIndex]
-	if current.Dir.EndDirectoryIndex == len(t.array) {
-		return
-	}
-
-	if current.Type == musicarray.DirectoryEntry && !current.Dir.ManuallyExpanded {
-		t.Select(current.Dir.EndDirectoryIndex)
+	if current.Type == musicarray.DirectoryEntry && !current.Dir.Expanded() {
+        // if the last directory at root level is selected don't do anything
+        if current.Dir.EndDirectoryIndex != len(t.array) {
+            t.Select(current.Dir.EndDirectoryIndex)
+        }
 	} else {
 		t.Select(t.currentIndex + 1)
 	}
+}
+
+func (t *DirTree) SelectEnclosing(index int) {
+    targetDepth := t.array[index].Depth - 1
+    if index != 0 {
+        i := index
+        for ; t.array[i].Depth != targetDepth; i-- {}
+        t.Select(i)
+    }
 }
 
 func (t *DirTree) Select(index int) {
@@ -52,6 +67,7 @@ func (t *DirTree) Select(index int) {
 	t.markAutoExpanded(true)
 }
 
+// markAutoExpanded traverses the directory tree upwards marking all directories containing the currently selected item as automatically expanded
 func (t *DirTree) markAutoExpanded(value bool) {
 	i := t.currentIndex - 1
 	depth := t.array[t.currentIndex].Depth
@@ -67,7 +83,100 @@ func (t *DirTree) markAutoExpanded(value bool) {
 func (t *DirTree) Draw(w *gnc.Window) {
 	w.Erase()
 	defer w.Refresh()
-	t.printEntry(0, 0, w)
+    _, width := w.MaxYX()
+    buffer := t.toString(width)
+    lines := strings.Split(buffer, "\n")
+    //lineCount := strings.Count(buffer, "\n")
+    /*
+    if len(lines) > height {
+        w.MovePrint(0, 0, buffer)
+    } else {
+        w.MovePrint(0, 0, buffer)
+    }
+    */
+    for _, line := range(lines) {
+        if strings.Contains(line, "=>") {
+            w.AttrOn(gnc.A_STANDOUT)
+            w.AttrOff(gnc.A_NORMAL)
+            w.Println(line)
+            w.AttrOn(gnc.A_NORMAL)
+            w.AttrOff(gnc.A_STANDOUT)
+        } else {
+            w.Println(line)
+        }
+    }
+}
+
+func (t *DirTree) toString(width int) string {
+    _, result := t.entryToString(0, width)
+    return result
+}
+
+func (t *DirTree) entryToString(index, width int) (nextIndex int, result string) {
+	if index >= len(t.array) {
+		return index, ""
+	}
+	if t.array[index].Type == musicarray.DirectoryEntry {
+		return t.directoryToString(index, width)
+	} else {
+		return index + 1, songToString(width, t.array[index].Depth, t.array[index].Name, index == t.currentIndex)
+	}
+
+}
+
+func (t *DirTree) directoryToString(index, width int) (int, string) {
+    ret := ""
+	if index >= len(t.array) {
+		return index, ret
+	}
+
+	entry := t.array[index]
+	dir := entry.Dir
+	isOpen := dir.AutoExpanded || dir.ManuallyExpanded
+	ret += dirNameToString(width, entry.Depth, entry.Name, isOpen, index == t.currentIndex)
+
+	if isOpen {
+		currentIndex := index + 1
+		for currentIndex < dir.EndDirectoryIndex {
+            next, s := t.entryToString(currentIndex, width)
+            currentIndex = next
+            ret += s
+			if currentIndex >= len(t.array) {
+				return currentIndex, ret
+			}
+		}
+		return dir.EndDirectoryIndex, ret
+	} else {
+		return dir.EndDirectoryIndex, ret
+	}
+}
+
+func dirNameToString(width, indent int, name string, isOpen, isSelected bool) string {
+    leadChars := "> "
+	if isOpen {
+		leadChars = "v "
+	} 
+	if isSelected {
+		return spaces(indent) + truncate("=>" + name, width - indent - 1) + "\n"
+	} else {
+        return spaces(indent) + truncate(leadChars + name, width - indent - 1) + "\n"
+	}
+}
+
+func songToString(width, indent int, name string, isSelected bool) string {
+	leadChar := "~ "
+	if isSelected {
+		leadChar = "=>"
+	}
+    return spaces(indent) + truncate(leadChar + name, width - indent - 1) + "\n"
+}
+
+func spaces(count int) string {
+    s := ""
+    for i := 0; i < count; i++ {
+        s += " "
+    }
+    return s
 }
 
 func (t *DirTree) printEntry(index int, line int, win *gnc.Window) (nextIndex, nextLine int) {
@@ -77,7 +186,6 @@ func (t *DirTree) printEntry(index int, line int, win *gnc.Window) (nextIndex, n
 	}
 	if t.array[index].Type == musicarray.DirectoryEntry {
 		return t.printDirectory(index, line, win)
-		return index + 1, line + 1
 	} else {
 		printSongName(win, line, t.array[index].Depth, t.array[index].Name, index == t.currentIndex)
 		return index + 1, line + 1
@@ -104,7 +212,7 @@ func (t *DirTree) printDirectory(startingIndex, startingLine int, w *gnc.Window)
 				return currentIndex, currentLine
 			}
 		}
-		return dir.EndDirectoryIndex, currentLine + 1
+		return dir.EndDirectoryIndex, currentLine
 	} else {
 		return dir.EndDirectoryIndex, startingLine + 1
 	}
