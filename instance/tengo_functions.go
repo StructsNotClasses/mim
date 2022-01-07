@@ -1,13 +1,10 @@
 package instance
 
 import (
-    "github.com/StructsNotClasses/musicplayer/musicarray"
-
 	"github.com/d5/tengo/v2"
 	//"github.com/d5/tengo/v2/objects"
 
 	"math/rand"
-    "errors"
 )
 
 func (i *Instance) TengoSend(args ...tengo.Object) (tengo.Object, error) {
@@ -50,7 +47,7 @@ func (i *Instance) TengoPlaySelected(args ...tengo.Object) (tengo.Object, error)
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	err := i.PlayIndex(int(i.tree.currentIndex))
+	err := i.PlayIndex(int(i.tree.CurrentIndex()))
 	return nil, err
 }
 
@@ -60,21 +57,21 @@ func (i *Instance) TengoPlayIndex(args ...tengo.Object) (tengo.Object, error) {
 	}
 	if value, ok := args[0].(*tengo.Int); ok {
 		err := i.PlayIndex(int(value.Value))
-        return nil, err
+		return nil, err
 	} else {
-        return nil, tengo.ErrInvalidArgumentType{
-            Name:     "'playIndex' argument",
-            Expected: "int",
-            Found:    args[0].TypeName(),
-        }
-    }
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'playIndex' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
 }
 
 func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	return &tengo.Int{Value: int64(len(i.tree.array))}, nil
+	return &tengo.Int{Value: int64(i.tree.ItemCount())}, nil
 }
 
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
@@ -91,12 +88,12 @@ func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error)
 	if len(args) != 0 {
 		return nil, tengo.ErrWrongNumArguments
 	}
-	return &tengo.Int{Value: int64(i.tree.currentIndex)}, nil
+	return &tengo.Int{Value: int64(i.tree.CurrentIndex())}, nil
 }
 
 // TengoRandomIndex returns a random number that is a valid song index. It requires random to already be seeded.
 func (i *Instance) TengoRandomIndex(args ...tengo.Object) (tengo.Object, error) {
-	rnum := rand.Int31n(int32(len(i.tree.array)))
+	rnum := rand.Int31n(int32(i.tree.ItemCount()))
 	return &tengo.Int{Value: int64(rnum)}, nil
 }
 
@@ -125,7 +122,7 @@ func (i *Instance) TengoSelectEnclosing(args ...tengo.Object) (tengo.Object, err
 		return nil, tengo.ErrWrongNumArguments
 	}
 
-	i.tree.SelectEnclosing(i.tree.currentIndex)
+	i.tree.SelectEnclosing(i.tree.CurrentIndex())
 	i.tree.Draw(i.client.treeWindow)
 	return nil, nil
 }
@@ -136,20 +133,20 @@ func (i *Instance) TengoToggleDirExpansion(args ...tengo.Object) (tengo.Object, 
 	}
 
 	if value, ok := args[0].(*tengo.Int); ok {
-        index := int(value.Value)
-        if i.tree.array[index].Type != musicarray.DirectoryEntry {
-            return nil, errors.New("toggle: can only toggle directories.")
-        }
-        i.tree.array[index].Dir.ManuallyExpanded = !i.tree.array[index].Dir.ManuallyExpanded
-        i.tree.Draw(i.client.treeWindow)
-        return nil, nil
-    } else {
-        return nil, tengo.ErrInvalidArgumentType{
-            Name:     "'toggle' argument",
-            Expected: "int",
-            Found:    args[0].TypeName(),
-        }
-    }
+		index := int(value.Value)
+		err := i.tree.Toggle(index)
+		if err != nil {
+			return nil, err
+		}
+		i.tree.Draw(i.client.treeWindow)
+		return nil, nil
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'toggle' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
 }
 
 func (i *Instance) TengoIsDir(args ...tengo.Object) (tengo.Object, error) {
@@ -158,19 +155,36 @@ func (i *Instance) TengoIsDir(args ...tengo.Object) (tengo.Object, error) {
 	}
 
 	if value, ok := args[0].(*tengo.Int); ok {
-        index := int(value.Value)
-        if i.tree.array[index].Type == musicarray.DirectoryEntry {
-            return tengo.TrueValue, nil
-        } else {
-            return tengo.FalseValue, nil
-        }
-    } else {
-        return nil, tengo.ErrInvalidArgumentType{
-            Name:     "'toggle' argument",
-            Expected: "int",
-            Found:    args[0].TypeName(),
-        }
-    }
+		index := int(value.Value)
+		if i.tree.IsDir(index) {
+			return tengo.TrueValue, nil
+		} else {
+			return tengo.FalseValue, nil
+		}
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'toggle' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
+}
+
+func (i *Instance) TengoDepth(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 1 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	if value, ok := args[0].(*tengo.Int); ok {
+		index := int(value.Value)
+		return &tengo.Int{Value: int64(i.tree.Depth(index))}, nil
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'toggle' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
 }
 
 func (i *Instance) TengoSelectedIsDir(args ...tengo.Object) (tengo.Object, error) {
@@ -178,9 +192,9 @@ func (i *Instance) TengoSelectedIsDir(args ...tengo.Object) (tengo.Object, error
 		return nil, tengo.ErrWrongNumArguments
 	}
 
-    if i.tree.array[i.tree.currentIndex].Type == musicarray.DirectoryEntry {
-        return tengo.TrueValue, nil
-    } else {
-        return tengo.FalseValue, nil
-    }
+	if i.tree.CurrentIsDir() {
+		return tengo.TrueValue, nil
+	} else {
+		return tengo.FalseValue, nil
+	}
 }

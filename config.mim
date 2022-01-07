@@ -1,9 +1,9 @@
 :on_no_playback
-:load shuffle.tengo
+:load_script shuffle.tengo
 :bind p
-:load pause.tengo
+:load_script pause.tengo
 :bind q
-:load skip.tengo
+:load_script skip.tengo
 :bind j
 selectDown()
 :end
@@ -20,4 +20,9 @@ if selectedIsDir() {
     playSelected()
 }
 :end
+:bind a
+:load_script play_album.tengo
+:new_command s enable_shuffle.mim
+:new_command ns enable_sequential.mim
+:new_command as enable_album_shuffle.mim
 :char_mode

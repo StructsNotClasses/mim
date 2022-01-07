@@ -13,8 +13,8 @@ func New(win *gnc.Window) WindowWriter {
 }
 
 func (w WindowWriter) Write(bs []byte) (n int, err error) {
-	w.win.Print(string(bs))
-	w.win.Refresh()
+    w.win.Print(string(bs))
+    w.win.Refresh()
 	return len(bs), nil
 }
 

@@ -1,0 +1,13 @@
+:on_no_playback
+if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
+    r := randomIndex()
+    for !(isDir(r) && !isDir(r + 1)) {
+        r = randomIndex()
+    }
+    selectIndex(r + 1)
+} else {
+    selectIndex(currentIndex() + 1)
+} 
+playSelected()
+:end
+:char_mode

@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+    "regexp"
 	"log"
 	"os"
+    "strings"
 	"path/filepath"
 )
 
@@ -20,6 +22,16 @@ func New(rootPath string) (MusicArray, error) {
 }
 
 func directoryToArray(root string, depth int) (MusicArray, error) {
+    var fileRules = []string {
+        `.*\.mp3`,
+        `.*\.mp4`,
+        `.*\.webm`,
+        `.*\.mkv`,
+        `.*\.flac`,
+        `.*\.m4a`,
+        `.*\.ogg`,
+    }
+
 	var arr MusicArray
 
 	entries, err := fs.ReadDir(os.DirFS(root), ".")
@@ -39,6 +51,8 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
 		},
 	})
 
+    containing := len(arr) - 1
+
 	// add subdirectories in lexical order
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -54,15 +68,27 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
 	// add files in lexical order
 	for _, entry := range entries {
 		if !entry.IsDir() {
-			arr = append(arr, Entry{
-				Type:  SongEntry,
-				Name:  entry.Name(),
-				Path:  root + "/" + entry.Name(),
-				Depth: depth + 1,
-				Song:  Song{},
-			})
-		}
-	}
+            passes := false
+            for _, pattern := range(fileRules) {
+                matched, err := regexp.MatchString(pattern, entry.Name())
+                if err == nil && matched {
+                    passes = true
+                    break
+                } 
+            }
+            if passes {
+                arr = append(arr, Entry{
+                    Type:  SongEntry,
+                    Name:  entry.Name(),
+                    Path:  root + "/" + entry.Name(),
+                    Depth: depth + 1,
+                    Song:  Song{},
+                })
+            } else {
+                arr[containing].Dir.ItemCount--
+            }
+        }
+    }
 
 	return arr, nil
 }
@@ -110,6 +136,30 @@ func (arr MusicArray) buildNextIndices(targetDirectoryIndex int) (int, error) {
 	}
 
 	return expectedNextIndex - targetDirectoryIndex - 1, nil
+}
+
+func cleanUpFilename(fname string) string {
+    words := strings.Split(fname, "_")
+    /*
+    for i := 0; i < len(words); i++ {
+        if len(words[i]) >= 2 {
+            words[i] = toUpperString(words[i][0]) + words[i][1:]
+        } else if len(words[i]) == 0{
+
+        } else {
+            words[i] = toUpperString(words[i][0])
+        }
+    }
+    */
+    return strings.Join(words, " ")
+}
+
+func toUpperString(b byte) string {
+    if b >= 'a' && b <= 'z' {
+        return string([]byte{b + ('a' - 'A')})
+    } else {
+        return string([]byte{b})
+    }
 }
 
 func (arr MusicArray) Print() {

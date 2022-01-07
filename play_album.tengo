@@ -1,0 +1,3 @@
+if selectedIsDir() && !isDir(currentIndex() + 1) {
+    playIndex(currentIndex() + 1)
+}

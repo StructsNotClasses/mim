@@ -1,0 +1,5 @@
+:echo Enabling shuffle playback
+:on_no_playback
+:load_script shuffle.tengo
+:end
+:char_mode

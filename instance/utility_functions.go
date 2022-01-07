@@ -64,5 +64,4 @@ func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan notification.N
 	}
 
 	notifier <- notification.PlaybackEnded
-	w.Close()
 }
