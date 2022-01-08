@@ -1,9 +1,9 @@
 package instance
 
 import (
-	"github.com/StructsNotClasses/musicplayer/instance/notification"
-	"github.com/StructsNotClasses/musicplayer/remote"
-	"github.com/StructsNotClasses/musicplayer/windowwriter"
+	"github.com/StructsNotClasses/mim/instance/notification"
+	"github.com/StructsNotClasses/mim/remote"
+	"github.com/StructsNotClasses/mim/windowwriter"
 
 	gnc "github.com/rthornton128/goncurses"
 
@@ -21,26 +21,16 @@ func pop(bytes []byte) []byte {
 	}
 }
 
-// replaceCurrentLine erases the current line on the window and prints a new one
-// the new string's byte array could potentially contain a newline, which means this can replace the line with multiple lines
-func replaceCurrentLine(win *gnc.Window, bs []byte) {
-	s := string(bs)
-	y, _ := win.CursorYX()
-	_, w := win.MaxYX()
-	win.HLine(y, 0, ' ', w)
-	win.MovePrint(y, 0, s)
-	win.Refresh()
-}
-
 func windowPrintRuntimeError(outputWindow *gnc.Window) {
 	if runtimeError := recover(); runtimeError != nil {
 		outputWindow.Print(fmt.Sprintf("\nruntime error: %s\n", runtimeError))
+        outputWindow.Refresh()
 	}
 }
 
-// run mplayer command "mplayer -slave -vo null <song path>"
-// the mplayer runner should send 1 to notify_ch when it completes playback. otherwise, nothing should be sent
-func playFileWithMplayer(file string, notifier chan notification.Notification, outWindow *gnc.Window) remote.Remote {
+// playFileWithMplayer runs the command "mplayer -slave -vo null <file>" and notifies upon the beginning and end of playback to notifier
+// the remote returned contains a pipe to the commands stdin and can be used to send it input
+func playFileWithMplayer(file string, notifier chan notification.Notification, out windowwriter.WindowWriter) remote.Remote {
 	cmd := exec.Command("mplayer",
 		"-slave", "-vo", "null", "-quiet", file)
 
@@ -49,12 +39,12 @@ func playFileWithMplayer(file string, notifier chan notification.Notification, o
 		log.Fatal(err)
 	}
 
-	go runWithWriter(cmd, windowwriter.New(outWindow), notifier)
+	go runWithWriter(cmd, out, notifier)
 
 	return remote.Remote{pipe}
 }
 
-func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan notification.Notification) { // notifier chan int) {
+func runWithWriter(cmd *exec.Cmd, w io.WriteCloser, notifier chan notification.Notification) {
 	notifier <- notification.PlaybackBegan
 	cmd.Stdout = w
 

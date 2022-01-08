@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/StructsNotClasses/musicplayer/instance"
-	"github.com/StructsNotClasses/musicplayer/musicarray"
+	"github.com/StructsNotClasses/mim/instance"
+	"github.com/StructsNotClasses/mim/musicarray"
 
 	gnc "github.com/rthornton128/goncurses"
 
@@ -10,8 +10,8 @@ import (
 )
 
 const PARENT_DIRECTORY = "/mnt/music"
-const SONG_LIST_FILE = "/mnt/music/musicplayer/songs.json"
-const CONFIG = "/mnt/music/musicplayer/config.mim"
+const SONG_LIST_FILE = "/mnt/music/mim/songs.json"
+const CONFIG = "/mnt/music/mim/config.mim"
 
 func main() {
 	arr, err := musicarray.New(PARENT_DIRECTORY)

@@ -1,20 +1,24 @@
 package dirtree
 
 import (
-	"github.com/StructsNotClasses/musicplayer/musicarray"
+	"github.com/StructsNotClasses/mim/musicarray"
+
+	gnc "github.com/rthornton128/goncurses"
 
 	"errors"
 )
 
 type DirTree struct {
+    win *gnc.Window
 	currentIndex int
 	array        musicarray.MusicArray
 }
 
-func New(a musicarray.MusicArray) DirTree {
+func New(win *gnc.Window, arr musicarray.MusicArray) DirTree {
 	return DirTree{
+        win: win,
 		currentIndex: 0,
-		array:        a,
+		array:        arr,
 	}
 }
 

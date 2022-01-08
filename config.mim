@@ -1,28 +1,28 @@
 :on_no_playback
-:load_script shuffle.tengo
+:load_script scripts/shuffle.tengo
 :bind p
-:load_script pause.tengo
+:load_script scripts/pause.tengo
 :bind q
-:load_script skip.tengo
+:load_script scripts/skip.tengo
 :bind j
 selectDown()
-:end
+:end move_down
 :bind k
 selectUp()
-:end
+:end move_up
 :bind h
 selectEnclosing()
-:end
+:end select_enclosing
 :bind l
 if selectedIsDir() {
     toggle(currentIndex())
 } else {
     playSelected()
 }
-:end
+:end play_or_toggle
 :bind a
-:load_script play_album.tengo
-:new_command s enable_shuffle.mim
-:new_command ns enable_sequential.mim
-:new_command as enable_album_shuffle.mim
+:load_script scripts/play_album.tengo
+:new_command s scripts/enable_shuffle.mim
+:new_command ns scripts/enable_sequential.mim
+:new_command as scripts/enable_album_shuffle.mim
 :char_mode

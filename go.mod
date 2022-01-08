@@ -1,18 +1,15 @@
-module github.com/StructsNotClasses/musicplayer
+module github.com/StructsNotClasses/mim
 
 go 1.17
 
-replace musicplayer/github.com/d5/tengo/v2 v2.0.0 => ./tengo
+//replace mim/github.com/d5/tengo/v2 v2.0.0 => ./tengo
 
-//require github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9
-//require musicplayer/tengo v0.0.0
+//replace github.com/StructsNotClasses/tengotango => /home/pugpugpugs/tengotango/
 
-replace github.com/StructsNotClasses/tengotango => /home/pugpugpugs/tengotango/
-
-replace github.com/StructsNotClasses/musicplayer => /mnt/music/musicplayer/
+//replace github.com/StructsNotClasses/mim => /mnt/music/mim/
 
 require (
-	github.com/StructsNotClasses/tengotango v1.24.8 // indirect
-	github.com/d5/tengo/v2 v2.10.0 // indirect
-	github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9 // indirect
+	github.com/StructsNotClasses/mim v0.0.0-00010101000000-000000000000
+	github.com/d5/tengo/v2 v2.10.0
+	github.com/rthornton128/goncurses v0.0.0-20211122162138-db8d4cdb33a9
 )

@@ -13,6 +13,17 @@ import (
 
 type MusicArray []Entry
 
+var fileRules = []string {
+    `.*\.mp3`,
+    `.*\.mp4`,
+    `.*\.webm`,
+    `.*\.mkv`,
+    `.*\.flac`,
+    `.*\.m4a`,
+    `.*\.ogg`,
+}
+
+
 func New(rootPath string) (MusicArray, error) {
 	arr, err := directoryToArray(rootPath, 0)
 	if err != nil {
@@ -22,16 +33,6 @@ func New(rootPath string) (MusicArray, error) {
 }
 
 func directoryToArray(root string, depth int) (MusicArray, error) {
-    var fileRules = []string {
-        `.*\.mp3`,
-        `.*\.mp4`,
-        `.*\.webm`,
-        `.*\.mkv`,
-        `.*\.flac`,
-        `.*\.m4a`,
-        `.*\.ogg`,
-    }
-
 	var arr MusicArray
 
 	entries, err := fs.ReadDir(os.DirFS(root), ".")
@@ -79,7 +80,7 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
             if passes {
                 arr = append(arr, Entry{
                     Type:  SongEntry,
-                    Name:  entry.Name(),
+                    Name:  formatIfValid(entry.Name()),
                     Path:  root + "/" + entry.Name(),
                     Depth: depth + 1,
                     Song:  Song{},
@@ -91,6 +92,77 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
     }
 
 	return arr, nil
+}
+
+func formatIfValid(filename string) string {
+    if !inFormat(filename) {
+        return filename
+    }
+
+    // capitalize after the hyphen and replace "-" with " - " for readability
+    atHyphens := strings.Split(filename, "-")
+    for i, s := range(atHyphens) {
+        atHyphens[i] = capitalizeFirst(s)
+    }
+    res := strings.Join(atHyphens, " - ")
+
+    // capitalize after underscores and replace underscores with spaces
+    atScores := strings.Split(res, "_")
+    for i, s := range(atScores) {
+        atScores[i] = capitalizeFirst(s)
+    }
+    res = strings.Join(atScores, " ")
+
+    //remove file extension
+    return strings.Split(res, ".")[0]
+}
+
+func inFormat(s string) bool {
+    // following code basically checks if the filename is only lowercase, digits, and underscores
+    // eg 10-foo_bar.mp3
+    // only one hyphen is allowed, which should be used to denote number within an album
+    periodCount := 0
+    hyphenCount := 0
+    for _, r := range(s) {
+        if !isLower(r) && !isDigit(r) && r != rune('_') {
+            if r == rune('.') {
+                if periodCount == 1 {
+                    return false
+                } else {
+                    periodCount++
+                }
+            } else if r == rune('-') {
+                if hyphenCount == 1{
+                    return false
+                } else {
+                    hyphenCount++
+                }
+            } else {
+                // invalid character for formatting
+                return false
+            }
+        }
+    }
+    return true
+}
+
+func isLower(r rune) bool {
+    return r <= rune('z') && r >= rune('a')
+}
+
+func isDigit(r rune) bool {
+    return r <= rune('9') && r >= rune('0')
+}
+
+func capitalizeFirst(s string) string {
+    if len(s) == 0 {
+        return s
+    } else if len(s) == 1 {
+        return strings.ToUpper(s)
+    } else {
+        first := s[0:1]
+        return strings.ToUpper(first) + s[1:]
+    }
 }
 
 func addDirectoryIndices(arr MusicArray) MusicArray {

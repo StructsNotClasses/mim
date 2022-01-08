@@ -4,5 +4,5 @@ selectIndex(currentIndex() + 1)
 if !selectedIsDir() {
     playSelected()
 }
-:end
+:end play_next
 :char_mode

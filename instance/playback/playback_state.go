@@ -1,8 +1,8 @@
 package playback
 
 import (
-    "github.com/StructsNotClasses/musicplayer/remote"
-    "github.com/StructsNotClasses/musicplayer/instance/notification"
+    "github.com/StructsNotClasses/mim/remote"
+    "github.com/StructsNotClasses/mim/instance/notification"
 )
 
 type PlaybackState struct {

@@ -1,7 +1,7 @@
 package dirtree
 
 import (
-	"github.com/StructsNotClasses/musicplayer/musicarray"
+	"github.com/StructsNotClasses/mim/musicarray"
 
     "strings"
 
@@ -14,22 +14,22 @@ type Line struct {
     isDir bool
 }
 
-func (t *DirTree) Draw(win *gnc.Window) {
-	win.Erase()
-	defer win.Refresh()
+func (t *DirTree) Draw() {
+	t.win.Erase()
+	defer t.win.Refresh()
 
-	height, width := win.MaxYX()
+	height, width := t.win.MaxYX()
 
     lines, selectedLine := t.getLines(width)
 
 	centerLine := int(height / 2)
 	if len(lines) <= height || selectedLine < centerLine {
-		printLines(win, lines, selectedLine)
+		printLines(t.win, lines, selectedLine)
 	} else if selectedLine >= (len(lines) - (height - centerLine)) {
 		offsetIndex := selectedLine + height - len(lines) + 1
-		printLines(win, lines[len(lines)-height-1:], offsetIndex)
+		printLines(t.win, lines[len(lines)-height-1:], offsetIndex)
 	} else {
-		printLines(win, lines[selectedLine-centerLine:selectedLine+(height-centerLine)], centerLine)
+		printLines(t.win, lines[selectedLine-centerLine:selectedLine+(height-centerLine)], centerLine)
 	}
 }
 

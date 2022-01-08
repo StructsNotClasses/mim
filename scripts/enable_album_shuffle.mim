@@ -10,5 +10,5 @@ if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
     selectIndex(currentIndex() + 1)
 } 
 playSelected()
-:end
+:end select_random_album_or_next_song
 :char_mode

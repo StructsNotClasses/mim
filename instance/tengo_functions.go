@@ -32,7 +32,7 @@ func (i *Instance) TengoSelectIndex(args ...tengo.Object) (tengo.Object, error) 
 	if v, ok := args[0].(*tengo.Int); ok {
 		asInt := v.Value
 		i.tree.Select(int(asInt))
-		i.tree.Draw(i.client.treeWindow)
+		i.tree.Draw()
 		return nil, nil
 	} else {
 		return nil, tengo.ErrInvalidArgumentType{
@@ -77,8 +77,7 @@ func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
 	for _, item := range args {
 		if value, ok := item.(*tengo.String); ok {
-			i.client.commandOutputWindow.Print(value)
-			i.client.commandOutputWindow.Refresh()
+			i.commandHandling.InfoPrint(value)
 		}
 	}
 	return nil, nil
@@ -103,7 +102,7 @@ func (i *Instance) TengoSelectUp(args ...tengo.Object) (tengo.Object, error) {
 	}
 
 	i.tree.SelectUp()
-	i.tree.Draw(i.client.treeWindow)
+	i.tree.Draw()
 	return nil, nil
 }
 
@@ -113,7 +112,7 @@ func (i *Instance) TengoSelectDown(args ...tengo.Object) (tengo.Object, error) {
 	}
 
 	i.tree.SelectDown()
-	i.tree.Draw(i.client.treeWindow)
+	i.tree.Draw()
 	return nil, nil
 }
 
@@ -123,7 +122,7 @@ func (i *Instance) TengoSelectEnclosing(args ...tengo.Object) (tengo.Object, err
 	}
 
 	i.tree.SelectEnclosing(i.tree.CurrentIndex())
-	i.tree.Draw(i.client.treeWindow)
+	i.tree.Draw()
 	return nil, nil
 }
 
@@ -138,7 +137,7 @@ func (i *Instance) TengoToggleDirExpansion(args ...tengo.Object) (tengo.Object, 
 		if err != nil {
 			return nil, err
 		}
-		i.tree.Draw(i.client.treeWindow)
+		i.tree.Draw()
 		return nil, nil
 	} else {
 		return nil, tengo.ErrInvalidArgumentType{

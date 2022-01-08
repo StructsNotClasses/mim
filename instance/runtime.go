@@ -1,26 +1,28 @@
 package instance
 
 import (
-	"github.com/d5/tengo/v2"
+	"github.com/StructsNotClasses/mim/windowwriter"
 
+	"github.com/d5/tengo/v2"
 	gnc "github.com/rthornton128/goncurses"
 
-	"errors"
 	"fmt"
-	"io/ioutil"
+	"errors"
 	"strings"
+	"io/ioutil"
+    "path/filepath"
 )
 
 func (instance *Instance) Run() {
-	for !instance.state.exit {
+	for !instance.commandHandling.state.exit {
 		//instance.writer.UpdateWindow()
 
 		// check if there's a notification of playback state
 		instance.playbackState.Receive(instance.notifier)
 
 		// if no song is playing, run the script that has been dedicated to afformentioned scenario
-		if !instance.playbackState.PlaybackInProgress && len(instance.runOnNoPlayback) > 0 {
-			instance.runBytesAsScript(instance.runOnNoPlayback)
+		if !instance.playbackState.PlaybackInProgress && len(instance.commandHandling.state.runOnNoPlayback.contents) > 0 {
+			instance.runScript(instance.commandHandling.state.runOnNoPlayback)
 		}
 		if userByte := instance.GetKey(); userByte != 0 {
 			instance.HandleKey(userByte)
@@ -31,37 +33,37 @@ func (instance *Instance) Run() {
 func (instance *Instance) HandleKey(userByte gnc.Key) {
 	// if in character mode, run the script bound to the received key and skip the rest
 	// (currently the colon key could be bound to something haha)
-	if script, ok := instance.bindMap[userByte]; ok && instance.state.mode == CharacterMode {
-		instance.runBytesAsScript(script)
+	if script, ok := instance.commandHandling.bindMap[userByte]; ok && instance.commandHandling.state.mode == CharacterMode {
+		instance.runScript(script)
 		return
 	}
 
 	// use the colon key to unset character mode instantly
 	if userByte == ':' {
-		instance.state.mode = CommandMode
+		instance.commandHandling.state.mode = CommandMode
 	}
 
 	if userByte == 263 {
 		// if backspace remove last byte from slice
-		instance.state.line = pop(instance.state.line)
+		instance.commandHandling.state.line = pop(instance.commandHandling.state.line)
 	} else {
 		// for any other character add it to the line buffer
-		instance.state.line = append(instance.state.line, byte(userByte))
+		instance.commandHandling.state.line = append(instance.commandHandling.state.line, byte(userByte))
 	}
 
-	replaceCurrentLine(instance.client.commandInputWindow, instance.state.line)
+    instance.commandHandling.UpdateInput(instance.commandHandling.state.line)
 	if userByte == '\n' {
-		line := string(instance.state.line)
+		line := string(instance.commandHandling.state.line)
 		if command := strings.TrimPrefix(line, ":"); command != line {
 			command = strings.TrimSuffix(command, "\n")
 			instance.runCommand(command)
 		} else {
-			instance.state.lines = append(instance.state.lines, instance.state.line...)
+			instance.commandHandling.state.lines = append(instance.commandHandling.state.lines, instance.commandHandling.state.line...)
 		}
 		//always clear the line buffer
-		instance.state.line = []byte{}
+		instance.commandHandling.state.line = []byte{}
 	}
-	instance.client.backgroundWindow.Refresh()
+	instance.backgroundWindow.Refresh()
 }
 
 func (instance *Instance) runCommand(cmd string) {
@@ -71,22 +73,35 @@ func (instance *Instance) runCommand(cmd string) {
 	case "exit":
 		instance.Exit()
 	case "end":
-		instance.manageByteScript(instance.state.lines)
-		instance.state.lines = []byte{}
+        // this command marks the end of a script being written across multiple lines
+        // optionally, the name of the script can be provided as an argument
+        // if no name is provided, the script will be unnamed
+        // takes the form
+        // :end <name>?
+        script := Script{
+            name: "",
+            contents: instance.commandHandling.state.lines,
+        }
+        if len(args) > 1 {
+            script.name = args[1]
+        }
+		instance.manageScript(script)
+		instance.commandHandling.state.lines = []byte{}
 	case "on_no_playback":
-		instance.state.onPlaybackBeingSet = true
+		instance.commandHandling.state.onPlaybackBeingSet = true
 	case "debug_print_buffer":
-		instance.client.commandOutputWindow.Printf("line: '%s'\nbytes: '%s'\n", cmd, string(instance.state.lines))
-		instance.client.commandOutputWindow.Refresh()
+		instance.commandHandling.InfoPrintf("line: '%s'\nbytes: '%s'\n", cmd, string(instance.commandHandling.state.lines))
 	case "char_mode":
-		instance.state.mode = CharacterMode
+		instance.commandHandling.state.mode = CharacterMode
 	case "load_script":
 		bytes, err := ioutil.ReadFile(args[1])
 		if err != nil {
-			instance.client.commandOutputWindow.Printf("load: Failed to load file '%s' with error '%v'\n", args[1], err)
-			instance.client.commandOutputWindow.Refresh()
+			instance.commandHandling.InfoPrintf("load: Failed to load file '%s' with error '%v'\n", args[1], err)
 		} else {
-			instance.manageByteScript(bytes)
+            instance.manageScript(Script{
+                name: strings.TrimSuffix(filepath.Base(args[1]), ".tengo"),
+                contents: bytes,
+            })
 		}
 	case "load_config":
 		// this command can be thought of as replacing itself with the commands in its argument
@@ -97,72 +112,67 @@ func (instance *Instance) runCommand(cmd string) {
 		// :load_config <filename>
 		err := instance.LoadConfig(args[1])
 		if err != nil {
-			instance.client.commandOutputWindow.Printf("load: Failed to load config '%s' with error '%v'\n", args[1], err)
-			instance.client.commandOutputWindow.Refresh()
+			instance.commandHandling.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", args[1], err)
 		}
 	case "new_command":
 		if len(args) != 3 {
-			instance.client.commandOutputWindow.Println(":new_command: usage ':new_command <name> <config file>'")
-			instance.client.commandOutputWindow.Refresh()
+			instance.commandHandling.InfoPrintln(":new_command: usage ':new_command <name> <config file>'")
 		} else {
-			instance.commandMap[args[1]] = args[2]
+			instance.commandHandling.commandMap[args[1]] = args[2]
 		}
 	case "bind":
 		// these commands should follow the format
 		// :bind <character>
 		// <script>
 		// :end
-		instance.state.bindChar = gnc.Key(args[1][0])
-		instance.state.lines = []byte{}
+		instance.commandHandling.state.bindChar = gnc.Key(args[1][0])
+		instance.commandHandling.state.lines = []byte{}
 	case "echo":
 		// the echo command prints something to the info window. this can be useful for telling the user when a config was loaded and stuff
 		// takes the form
 		// :echo <message>
 		message := strings.TrimPrefix(cmd, "echo ")
-		instance.client.commandOutputWindow.Println(message)
-		instance.client.commandOutputWindow.Refresh()
+		instance.commandHandling.InfoPrintln(message)
 	default:
-		configFile, ok := instance.commandMap[args[0]]
+		configFile, ok := instance.commandHandling.commandMap[args[0]]
 		if ok {
 			err := instance.LoadConfig(configFile)
 			if err != nil {
-				instance.client.commandOutputWindow.Printf("load: Failed to load config '%s' with error '%v'\n", configFile, err)
-				instance.client.commandOutputWindow.Refresh()
+				instance.commandHandling.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", configFile, err)
 			}
 		} else {
-			instance.client.commandOutputWindow.Printf("unknown command: '%s'\n", args[0])
+			instance.commandHandling.InfoPrintf("unknown command: '%s'\n", args[0])
 		}
 	}
 }
 
-func (instance *Instance) Exit() {
-	instance.state.exit = true
-	instance.StopPlayback()
-}
+func (instance *Instance) manageScript(script Script) {
+    whatToPrint := string(script.contents)
+    if script.name != "" {
+        whatToPrint = script.name
+    }
 
-func (instance *Instance) manageByteScript(script []byte) {
-	if instance.state.bindChar != 0 {
-		instance.client.commandOutputWindow.Printf("Binding script: %s to character %c\n", string(script), instance.state.bindChar)
-		instance.client.commandOutputWindow.Refresh()
-		instance.bindMap[instance.state.bindChar] = script
-		instance.state.bindChar = 0
-	} else if instance.state.onPlaybackBeingSet {
-		instance.client.commandOutputWindow.Println("Setting script to run when no songs are playing: " + string(script))
-		instance.client.commandOutputWindow.Refresh()
-		instance.runOnNoPlayback = script
-		instance.state.onPlaybackBeingSet = false
+	if instance.commandHandling.state.bindChar != 0 {
+        instance.commandHandling.InfoPrintf("Binding script: %s to character '%c'\n", whatToPrint, instance.commandHandling.state.bindChar)
+		instance.commandHandling.bindMap[instance.commandHandling.state.bindChar] = script
+		instance.commandHandling.state.bindChar = 0
+	} else if instance.commandHandling.state.onPlaybackBeingSet {
+		instance.commandHandling.InfoPrintln("Setting script to run when no songs are playing: " + whatToPrint)
+		instance.commandHandling.state.runOnNoPlayback = script
+		instance.commandHandling.state.onPlaybackBeingSet = false
 	} else {
-		instance.runBytesAsScript(script)
+		instance.runScript(script)
 	}
 }
 
-func (i *Instance) runBytesAsScript(bs []byte) {
-	i.client.commandOutputWindow.Print("Running script: " + string(bs))
-	i.client.commandOutputWindow.Refresh()
+func (i *Instance) runScript(s Script) {
+    if s.name != "" {
+        i.commandHandling.InfoPrintln("Running script: " + s.name)
+    } else {
+        i.commandHandling.InfoPrint("Running script: " + string(s.contents))
+    }
 
-	outwin := i.client.commandOutputWindow
-
-	script := tengo.NewScript(bs)
+	script := tengo.NewScript(s.contents)
 	script.Add("send", i.TengoSend)
 	script.Add("selectIndex", i.TengoSelectIndex)
 	script.Add("playSelected", i.TengoPlaySelected)
@@ -181,17 +191,13 @@ func (i *Instance) runBytesAsScript(bs []byte) {
 
 	bytecode, err := script.Compile()
 	if err != nil {
-		outwin.Println(err)
-	} else {
-		outwin.Println("Successful compilation!\n")
-	}
-	outwin.Refresh()
-
-	defer windowPrintRuntimeError(outwin)
-	if err := bytecode.Run(); err != nil {
-		outwin.Println(err)
-		outwin.Refresh()
-	}
+		i.commandHandling.InfoPrintln(err)
+    } else {
+        defer i.commandHandling.InfoPrintRuntimeError()
+        if err := bytecode.Run(); err != nil {
+            i.commandHandling.InfoPrintln(err)
+        }
+    }
 }
 
 func (i *Instance) PlayIndex(index int) error {
@@ -203,18 +209,11 @@ func (i *Instance) PlayIndex(index int) error {
 		return errors.New(fmt.Sprintf("instance.PlayIndex: directories cannot be played"))
 	}
 	i.tree.Select(index)
-	i.tree.Draw(i.client.treeWindow)
+	i.tree.Draw()
 
-	i.currentRemote = playFileWithMplayer(i.tree.CurrentEntry().Path, i.notifier, i.client.infoWindow)
+	i.currentRemote = playFileWithMplayer(i.tree.CurrentEntry().Path, i.notifier, windowwriter.New(i.mpOutputWindow))
 
 	//wait for the above function to send a signal that playback began
 	i.playbackState.ReceiveBlocking(i.notifier)
 	return nil
-}
-
-func (i *Instance) StopPlayback() {
-	if i.playbackState.PlaybackInProgress {
-		i.currentRemote.SendString("quit\n")
-		i.playbackState.ReceiveBlocking(i.notifier)
-	}
 }

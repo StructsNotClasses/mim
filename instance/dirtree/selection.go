@@ -1,7 +1,7 @@
 package dirtree
 
 import (
-	"github.com/StructsNotClasses/musicplayer/musicarray"
+	"github.com/StructsNotClasses/mim/musicarray"
 )
 
 func (t *DirTree) SelectUp() {

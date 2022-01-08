@@ -1,0 +1,5 @@
+r := randomIndex()
+for isDir(r) {
+    r = randomIndex()
+}
+playIndex(r)
