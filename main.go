@@ -10,8 +10,7 @@ import (
 )
 
 const PARENT_DIRECTORY = "/mnt/music"
-const SONG_LIST_FILE = "/mnt/music/mim/songs.json"
-const CONFIG = "/mnt/music/mim/config.mim"
+const CONFIG = "/home/pugpugpugs/mim/config.mim"
 
 func main() {
 	arr, err := musicarray.New(PARENT_DIRECTORY)
