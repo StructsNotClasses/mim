@@ -31,3 +31,7 @@ func (t DirTree) CurrentIsDir() bool {
 func (t DirTree) IsDir(index int) bool {
 	return t.array[index].Type == musicarray.DirectoryEntry
 }
+
+func (t DirTree) IsExpanded(index int) bool {
+	return t.array[index].Type == musicarray.DirectoryEntry && t.array[index].Dir.Expanded()
+}

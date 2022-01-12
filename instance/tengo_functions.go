@@ -197,3 +197,32 @@ func (i *Instance) TengoSelectedIsDir(args ...tengo.Object) (tengo.Object, error
 		return tengo.FalseValue, nil
 	}
 }
+
+func (i *Instance) TengoIsExpanded(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 1 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	if value, ok := args[0].(*tengo.Int); ok {
+		index := int(value.Value)
+		if i.tree.IsExpanded(index) {
+			return tengo.TrueValue, nil
+		} else {
+			return tengo.FalseValue, nil
+		}
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'toggle' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
+}
+
+func (i *Instance) TengoItemCount(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 0 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+    return &tengo.Int{Value: int64(i.tree.ItemCount())}, nil
+}

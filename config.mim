@@ -22,6 +22,8 @@ if selectedIsDir() {
 :end play_or_toggle
 :bind a
 :load_script scripts/play_album.tengo
+:bind C
+:load_script scripts/close_all.tengo
 :new_command s scripts/enable_shuffle.mim
 :new_command ns scripts/enable_sequential.mim
 :new_command as scripts/enable_album_shuffle.mim

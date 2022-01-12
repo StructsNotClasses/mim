@@ -42,7 +42,7 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
 
 	arr = append(arr, Entry{
 		Type:  DirectoryEntry,
-		Name:  filepath.Base(root),
+		Name:  formatDirectoryIfValid(filepath.Base(root)),
 		Path:  root,
 		Depth: depth,
 		// previous and next directory indices will be properly initialized later
@@ -92,6 +92,30 @@ func directoryToArray(root string, depth int) (MusicArray, error) {
     }
 
 	return arr, nil
+}
+
+func formatDirectoryIfValid(name string) string {
+    if !dirInFormat(name) {
+        return name
+    }
+
+    atScores := strings.Split(name, "_")
+    for i, s := range(atScores) {
+        atScores[i] = capitalizeFirst(s)
+    }
+    return strings.Join(atScores, " ")
+}
+
+func dirInFormat(s string) bool {
+    // checks if the filename is only lowercase, digits, and underscores
+    // eg 10-foo_bar.mp3
+    for _, r := range(s) {
+        if !isLower(r) && !isDigit(r) && r != rune('_') {
+            // invalid character for formatting
+            return false
+        }
+    }
+    return true
 }
 
 func formatIfValid(filename string) string {

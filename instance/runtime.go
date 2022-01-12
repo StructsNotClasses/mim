@@ -188,6 +188,8 @@ func (i *Instance) runScript(s Script) {
 	script.Add("isDir", i.TengoIsDir)
 	script.Add("selectedIsDir", i.TengoSelectedIsDir)
 	script.Add("depth", i.TengoDepth)
+	script.Add("isExpanded", i.TengoIsExpanded)
+	script.Add("itemCount", i.TengoItemCount)
 
 	bytecode, err := script.Compile()
 	if err != nil {
