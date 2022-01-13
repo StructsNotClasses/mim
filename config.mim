@@ -73,8 +73,18 @@ selectIndex(0)
 selectIndex(itemCount() - 1)
 :end jump_to_bottom
 
+:bind =
+:begin
+send("volume +10 0")
+:end volume_up
+
+:bind -
+:begin
+send("volume -10 0")
+:end volume_down
+
 :new_command s scripts/enable_shuffle.mim
 :new_command ns scripts/enable_sequential.mim
 :new_command as scripts/enable_album_shuffle.mim
 
-:char_mode
+:alias q :exit

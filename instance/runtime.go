@@ -156,14 +156,16 @@ func (instance *Instance) runCommand(cmd string) {
             instance.commandHandling.InfoPrint(string(instance.commandHandling.state.lines))
         }
 	case "load_script":
-        // this is supposed to be identical to writing a script in the tui then calling ":end <filename without extension>"
+        // this (aims to) behave identically to doing
+        // :begin
+        // <contents of file>
+        // :end <filename without extension>
         // refer to the details of :end for more info
         // this can't be called while writing a tengo script because it would unset the binding state for the enclosing script
         // :load_script <filename>
         if instance.commandHandling.state.scriptBeingWritten {
             instance.commandHandling.InfoPrintln("load_script: cannot call while writing a script.")
         } else if instance.commandHandling.RequireArgCount(args, 2) {
-            instance.commandHandling.state.lines = []byte{}
             bytes, err := ioutil.ReadFile(args[1])
             if err != nil {
                 instance.commandHandling.InfoPrintf("load: Failed to load file '%s' with error '%v'\n", args[1], err)
@@ -257,7 +259,7 @@ func (instance *Instance) runCommand(cmd string) {
             return
         }
         
-        instance.commandHandling.InfoPrintf("unknown command: '%s'\n", args[0])
+        instance.commandHandling.InfoPrintf("Unknown command: '%s'\n", args[0])
 	}
 }
 

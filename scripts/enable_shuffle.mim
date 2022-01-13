@@ -1,5 +1,3 @@
 :echo Enabling shuffle playback
 :on_no_playback
-:begin
 :load_script scripts/shuffle.tengo
-:end
