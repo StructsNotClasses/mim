@@ -14,7 +14,7 @@ func (i *Instance) TengoSend(args ...tengo.Object) (tengo.Object, error) {
 	if s, ok := args[0].(*tengo.String); ok {
 		asString := s.String()
 		cmdString := asString[1:len(asString)-1] + "\n" // tengo ".String()" returns a string value surrounded by quotes, so this needs to remove them before sending
-		i.currentRemote.SendString(cmdString)
+		i.mp.currentRemote.SendString(cmdString)
 		return nil, nil
 	} else {
 		return nil, tengo.ErrInvalidArgumentType{
@@ -78,7 +78,7 @@ func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
 	for _, item := range args {
 		if value, ok := item.(*tengo.String); ok {
             s := value.String()
-            i.commandHandling.InfoPrint(s[1:len(s)-1])
+            i.terminal.InfoPrint(s[1:len(s)-1])
 		}
 	}
 	return nil, nil
@@ -86,7 +86,7 @@ func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
 
 func (i *Instance) TengoInfoPrintln(args ...tengo.Object) (tengo.Object, error) {
     obj, err := i.TengoInfoPrint(args...)
-    i.commandHandling.InfoPrintln()
+    i.terminal.InfoPrintln()
     return obj, err
 }
 
@@ -241,7 +241,7 @@ func (i *Instance) TengoSetSearch(args ...tengo.Object) (tengo.Object, error) {
 
     if ts, ok := args[0].(*tengo.String); ok {
         ss := strings.TrimSuffix(strings.TrimPrefix(ts.String(), "\""), "\"")
-        i.commandHandling.state.currentSearch = ss
+        i.terminal.state.currentSearch = ss
         return nil, nil
     } else {
         return nil, tengo.ErrInvalidArgumentType{
@@ -260,7 +260,7 @@ func (i *Instance) TengoNextMatch(args ...tengo.Object) (tengo.Object, error) {
 
 	if value, ok := args[0].(*tengo.Int); ok {
 		starting := int(value.Value)
-        match, exists := i.tree.NextMatch(starting, i.commandHandling.state.currentSearch)
+        match, exists := i.tree.NextMatch(starting, i.terminal.state.currentSearch)
         if exists {
             return &tengo.Int{Value: int64(match)}, nil
         } else {
@@ -283,7 +283,7 @@ func (i *Instance) TengoPrevMatch(args ...tengo.Object) (tengo.Object, error) {
 
 	if value, ok := args[0].(*tengo.Int); ok {
 		starting := int(value.Value)
-        match, exists := i.tree.PrevMatch(starting - 1, i.commandHandling.state.currentSearch)
+        match, exists := i.tree.PrevMatch(starting - 1, i.terminal.state.currentSearch)
         if exists {
             return &tengo.Int{Value: int64(match)}, nil
         } else {
@@ -298,6 +298,7 @@ func (i *Instance) TengoPrevMatch(args ...tengo.Object) (tengo.Object, error) {
 	}
 }
 
+// TengoGetLine reads characters from the user until it gets a newline, which isn't passed to getline
 func (i *Instance) TengoGetLine(args ...tengo.Object) (tengo.Object, error) {
     if len(args) != 0 {
         return nil, tengo.ErrWrongNumArguments
@@ -305,4 +306,14 @@ func (i *Instance) TengoGetLine(args ...tengo.Object) (tengo.Object, error) {
 
     line := i.GetLineBlocking()
     return &tengo.String{Value: line}, nil
+}
+
+// TengoGetChar reads a character from the user
+func (i *Instance) TengoGetChar(args ...tengo.Object) (tengo.Object, error) {
+    if len(args) != 0 {
+        return nil, tengo.ErrWrongNumArguments
+    }
+
+    char := i.GetCharBlocking()
+    return &tengo.Char{Value: char}, nil
 }

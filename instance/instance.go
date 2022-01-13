@@ -34,7 +34,7 @@ const (
 	CharacterMode
 )
 
-type CommandStateMachine struct {
+type CommandState struct {
     // buffer
 	line               []byte
 	lines              []byte
@@ -55,27 +55,25 @@ type CommandStateMachine struct {
 type CommandInterface struct {
     inWin *gnc.Window
     outWin *gnc.Window
-    state           CommandStateMachine
+    state           CommandState
     bindMap         map[gnc.Key]Script
     commandMap      map[string]string
     aliasMap        map[string]string
 }
 
-type Instance struct {
-    // windows
-    backgroundWindow *gnc.Window
-
-    // tree
-	tree            dirtree.DirTree
-
-    // command interface
-    commandHandling    CommandInterface
-
+type MplayerPlayer struct {
     // mplayer management
 	currentRemote   remote.Remote
 	playbackState   playback.PlaybackState
 	notifier        chan notification.Notification
     mpOutputWindow *gnc.Window
+}
+
+type Instance struct {
+    backgroundWindow *gnc.Window
+	tree            dirtree.DirTree
+    terminal    CommandInterface
+    mp MplayerPlayer
 }
 
 func New(scr *gnc.Window, array musicarray.MusicArray) Instance {
@@ -89,19 +87,19 @@ func New(scr *gnc.Window, array musicarray.MusicArray) Instance {
 
 	var instance Instance
 
-    var treewin, inwin, outwin *gnc.Window
+    var mpwin, treewin, inwin, outwin *gnc.Window
     var err error
-	instance.backgroundWindow, instance.mpOutputWindow, treewin, inwin, outwin, err = client.New(scr)
+	instance.backgroundWindow, mpwin, treewin, inwin, outwin, err = client.New(scr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	instance.tree = dirtree.New(treewin, array)
 
-    instance.commandHandling = CommandInterface{
+    instance.terminal = CommandInterface{
         inWin: inwin,
         outWin: outwin,
-        state: CommandStateMachine{
+        state: CommandState{
             line: []byte{},
             lines: []byte{},
             runOnNoPlayback: Script{},
@@ -118,14 +116,17 @@ func New(scr *gnc.Window, array musicarray.MusicArray) Instance {
         aliasMap: make(map[string]string),
     }
 
-	instance.currentRemote = remote.Remote{}
-	instance.notifier = make(chan notification.Notification)
+    instance.mp = MplayerPlayer{
+        currentRemote: remote.Remote{},
+        notifier: make(chan notification.Notification),
+        mpOutputWindow: mpwin,
+    }
 
 	return instance
 }
 
 func (instance *Instance) LoadConfig(filename string) error {
-	instance.commandHandling.state.line = []byte{}
+	instance.terminal.state.line = []byte{}
 
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -138,67 +139,15 @@ func (instance *Instance) LoadConfig(filename string) error {
 }
 
 func (instance *Instance) Exit() {
-	instance.commandHandling.state.exit = true
-	instance.StopPlayback()
+	instance.terminal.state.exit = true
+	instance.mp.StopPlayback()
 }
 
-func (i *Instance) StopPlayback() {
-	if i.playbackState.PlaybackInProgress {
-		i.currentRemote.SendString("quit\n")
-		i.playbackState.ReceiveBlocking(i.notifier)
+func (mp *MplayerPlayer) StopPlayback() {
+	if mp.playbackState.PlaybackInProgress {
+		mp.currentRemote.SendString("quit\n")
+		mp.playbackState.ReceiveBlocking(mp.notifier)
 	}
-}
-
-func (c CommandInterface) InfoPrint(args ...interface{}) {
-    c.outWin.Print(args...)
-    c.outWin.Refresh()
-}
-
-func (c CommandInterface) InfoPrintln(args ...interface{}) {
-    c.outWin.Println(args...)
-    c.outWin.Refresh()
-}
-
-func (c CommandInterface) InfoPrintf(format string, args ...interface{}) {
-    c.outWin.Printf(format, args...)
-    c.outWin.Refresh()
-}
-
-func (c CommandInterface) InfoPrintRuntimeError() {
-	if runtimeError := recover(); runtimeError != nil {
-		c.InfoPrint(fmt.Sprintf("\nRuntime Error: %s\n", runtimeError))
-	}
-}
-
-func (c CommandInterface) UpdateInput(currentLine []byte) {
-	replaceCurrentLine(c.inWin, currentLine)
-}
-
-func (c CommandInterface) RequireArgCount(args []string, count int) bool {
-    if len(args) != count {
-        c.InfoPrintf("Command Error: %s takes %d arguments but recieved %d.\n", args[0], count, len(args))
-        return false
-    }
-    return true
-}
-
-func (c CommandInterface) RequireArgCountGTE(args []string, count int) bool {
-    if len(args) < count {
-        c.InfoPrintf("Command Error: %s takes %d or more arguments but recieved %d.\n", args[0], count, len(args))
-        return false
-    }
-    return true
-}
-
-// replaceCurrentLine erases the current line on the window and prints a new one
-// the new string's byte array could potentially contain a newline, which means this can replace the line with multiple lines
-func replaceCurrentLine(win *gnc.Window, bs []byte) {
-	s := string(bs)
-	y, _ := win.CursorYX()
-	_, w := win.MaxYX()
-	win.HLine(y, 0, ' ', w)
-	win.MovePrint(y, 0, s)
-	win.Refresh()
 }
 
 func (i Instance) GetKey() gnc.Key {
@@ -212,11 +161,29 @@ func (i Instance) GetLineBlocking() string {
     ch := i.backgroundWindow.GetChar()
     for ; ch != '\n'; ch = i.backgroundWindow.GetChar() {
         line = fmt.Sprintf("%s%c", line, rune(ch))
-        i.commandHandling.InfoPrintf("%c", rune(ch))
+        i.terminal.InfoPrintf("%c", rune(ch))
     }
-    i.commandHandling.InfoPrintln()
+    i.terminal.InfoPrintln()
 
     // unset blocking
     i.backgroundWindow.Timeout(0)
     return line
+}
+
+func (i Instance) GetCharBlocking() rune {
+    i.backgroundWindow.Timeout(-1)
+    ch := i.backgroundWindow.GetChar()
+    i.backgroundWindow.Timeout(0)
+    return rune(ch)
+}
+
+// replaceCurrentLine erases the current line on the window and prints a new one
+// the new string's byte array can contain a newline, which means this can replace the line with multiple lines
+func replaceCurrentLine(win *gnc.Window, bs []byte) {
+	s := string(bs)
+	y, _ := win.CursorYX()
+	_, w := win.MaxYX()
+	win.HLine(y, 0, ' ', w)
+	win.MovePrint(y, 0, s)
+	win.Refresh()
 }

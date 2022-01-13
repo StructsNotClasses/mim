@@ -14,15 +14,15 @@ import (
 )
 
 func (instance *Instance) Run() {
-	for !instance.commandHandling.state.exit {
+	for !instance.terminal.state.exit {
 		//instance.writer.UpdateWindow()
 
 		// check if there's a notification of playback state
-		instance.playbackState.Receive(instance.notifier)
+		instance.mp.playbackState.Receive(instance.mp.notifier)
 
 		// if no song is playing, run the script that has been dedicated to afformentioned scenario
-		if !instance.playbackState.PlaybackInProgress && len(instance.commandHandling.state.runOnNoPlayback.contents) > 0 {
-			instance.runScript(instance.commandHandling.state.runOnNoPlayback)
+		if !instance.mp.playbackState.PlaybackInProgress && len(instance.terminal.state.runOnNoPlayback.contents) > 0 {
+			instance.terminal.runScript(instance.terminal.state.runOnNoPlayback)
 		}
 		if userByte := instance.GetKey(); userByte != 0 {
 			instance.HandleKey(userByte)
@@ -30,18 +30,27 @@ func (instance *Instance) Run() {
 	}
 }
 
-func (instance *Instance) HandleKey(userByte gnc.Key) {
-    // binding to newline not allowed 
-    if userByte == '\n' {
+func canBind(k gnc.Key) bool {
+    const cantBind = ":\n"
+    c := rune(k)
+    for _, char := range(cantBind) {
+        if c == char {
+            return false
+        }
+    }
+    return true
+}
+
+func (i *Instance) HandleKey(userByte gnc.Key) {
     // if a command is just starting to be entered then update the state accordingly
-    } else if len(instance.commandHandling.state.line) == 0 && userByte == ':' {
-        instance.commandHandling.state.commandBeingWritten = true
+    if len(i.terminal.state.line) == 0 && userByte == ':' {
+        i.terminal.state.commandBeingWritten = true
     // if no script is being written, no command is being written, and no command is just starting to be entered, run the script bound to the key
-    } else if !instance.commandHandling.state.scriptBeingWritten && !instance.commandHandling.state.commandBeingWritten {
-        if script, ok := instance.commandHandling.bindMap[userByte]; ok {
-            instance.runScript(script)
+    } else if !i.terminal.state.scriptBeingWritten && !i.terminal.state.commandBeingWritten && canBind(userByte) {
+        if script, ok := i.terminal.bindMap[userByte]; ok {
+            i.terminal.runScript(script)
         } else {
-            instance.commandHandling.InfoPrintf("%c is not bound.\n", userByte)
+            i.terminal.InfoPrintf("%c is not bound.\n", userByte)
         }
         return
     }
@@ -49,40 +58,39 @@ func (instance *Instance) HandleKey(userByte gnc.Key) {
 	if userByte == 263 {
 		// backspace removes last byte from line buffer
         // if there is nothing but a colon, the user decided not to enter a command, so stop command entry mode
-        if len(instance.commandHandling.state.line) == 1 && instance.commandHandling.state.line[0] == ':' {
-            instance.commandHandling.state.commandBeingWritten = false
+        if len(i.terminal.state.line) == 1 && i.terminal.state.line[0] == ':' {
+            i.terminal.state.commandBeingWritten = false
         }
-		instance.commandHandling.state.line = pop(instance.commandHandling.state.line)
+		i.terminal.state.line = pop(i.terminal.state.line)
 	} else {
 		// for any other character add it to the line buffer
-		instance.commandHandling.state.line = append(instance.commandHandling.state.line, byte(userByte))
+		i.terminal.state.line = append(i.terminal.state.line, byte(userByte))
 	}
 
-    instance.commandHandling.UpdateInput(instance.commandHandling.state.line)
+    i.terminal.UpdateInput(i.terminal.state.line)
 	if userByte == '\n' {
-		line := string(instance.commandHandling.state.line)
-        if instance.commandHandling.state.commandBeingWritten {
+		line := string(i.terminal.state.line)
+        if i.terminal.state.commandBeingWritten {
             command := line
-            instance.commandHandling.state.commandBeingWritten = false
-			instance.runCommand(command)
-        } else if instance.commandHandling.state.scriptBeingWritten {
-			instance.commandHandling.state.lines = append(instance.commandHandling.state.lines, instance.commandHandling.state.line...)
-        } else if len(instance.commandHandling.state.line) == 1 {
+            i.terminal.state.commandBeingWritten = false
+			i.runCommand(command)
+        } else if i.terminal.state.scriptBeingWritten {
+			i.terminal.state.lines = append(i.terminal.state.lines, i.terminal.state.line...)
+        } else if len(i.terminal.state.line) == 1 {
             // allow an empty line for clearing and formatting purposes
         } else {
-            instance.commandHandling.InfoPrintln("Error: Non-command (somehow) entered before a begin command.")
+            i.terminal.InfoPrintln("Error: Non-command (somehow) entered before a begin command.")
 		}
 
         //always clear the line buffer
-        instance.commandHandling.state.line = []byte{}
+        i.terminal.state.line = []byte{}
     }
-	instance.backgroundWindow.Refresh()
 }
 
 func (instance *Instance) runCommand(cmd string) {
 	args, err := splitCommand(cmd)
     if err != nil {
-        instance.commandHandling.InfoPrintln(err)
+        instance.terminal.InfoPrintln(err)
         return
     }
 
@@ -98,9 +106,9 @@ func (instance *Instance) runCommand(cmd string) {
         // no arguments, naming and such is handled by finalization commands
         // clears the buffer
         // :begin
-        instance.commandHandling.state.scriptBeingWritten = true
+        instance.terminal.state.scriptBeingWritten = true
 	case "end":
-        // this command marks the end of a script being written within the tui 
+        // marks the end of a script being written within the tui 
         // optionally, the name of the script can be provided as an argument
         // if no name is provided, the script will be named its contents
         // be aware that this behaves differently based on the instance state
@@ -110,18 +118,18 @@ func (instance *Instance) runCommand(cmd string) {
         //     if nothing was being set, the script will be executed once
         // this command triggers compilation of the script and always clears the buffer
         // :end <name>?
-        if !instance.commandHandling.state.scriptBeingWritten {
-            instance.commandHandling.InfoPrintln("end: called outside of script-writing environment")
+        if !instance.terminal.state.scriptBeingWritten {
+            instance.terminal.InfoPrintln("end: called outside of script-writing environment")
             return
         }
-        instance.commandHandling.state.scriptBeingWritten = false
-        compiled, err := instance.compileScript(instance.commandHandling.state.lines)
+        instance.terminal.state.scriptBeingWritten = false
+        compiled, err := instance.compileScript(instance.terminal.state.lines)
         if err != nil {
-            instance.commandHandling.InfoPrintln(err)
+            instance.terminal.InfoPrintln(err)
         } else {
             script := Script{
                 name: "",
-                contents: instance.commandHandling.state.lines,
+                contents: instance.terminal.state.lines,
                 bytecode: compiled,
             }
             if len(args) > 1 {
@@ -129,15 +137,15 @@ func (instance *Instance) runCommand(cmd string) {
             }
             instance.manageScript(script)
         }
-        instance.commandHandling.state.lines = []byte{}
+        instance.terminal.state.lines = []byte{}
     case "cancel":
         // allows the user to discard their tui-written script without executing it
         // :cancel
-        if instance.commandHandling.state.scriptBeingWritten {
-            instance.commandHandling.state.lines = []byte{}
-            instance.commandHandling.state.scriptBeingWritten = false
+        if instance.terminal.state.scriptBeingWritten {
+            instance.terminal.state.lines = []byte{}
+            instance.terminal.state.scriptBeingWritten = false
         } else {
-            instance.commandHandling.InfoPrintln("cancel: cannot call outside of script-writing environment")
+            instance.terminal.InfoPrintln("cancel: cannot call outside of script-writing environment")
         }
 	case "on_no_playback":
         // changes state such that the next script processed will be run whenever nothing is currently playing
@@ -145,15 +153,15 @@ func (instance *Instance) runCommand(cmd string) {
         // eg :on_no_playback
         //    :end do_nothing
         // :on_no_playback
-		if instance.commandHandling.RequireArgCount(args, 1) {
-            instance.commandHandling.state.onPlaybackBeingSet = true
+		if instance.terminal.RequireArgCount(args, 1) {
+            instance.terminal.state.onPlaybackBeingSet = true
         }
 	case "print_buffer":
         // print the current buffer contents to the info window
         // mostly for debugging or checking if empty or something
         // :print_buffer
-		if instance.commandHandling.RequireArgCount(args, 1) {
-            instance.commandHandling.InfoPrint(string(instance.commandHandling.state.lines))
+		if instance.terminal.RequireArgCount(args, 1) {
+            instance.terminal.InfoPrint(string(instance.terminal.state.lines))
         }
 	case "load_script":
         // this (aims to) behave identically to doing
@@ -163,16 +171,16 @@ func (instance *Instance) runCommand(cmd string) {
         // refer to the details of :end for more info
         // this can't be called while writing a tengo script because it would unset the binding state for the enclosing script
         // :load_script <filename>
-        if instance.commandHandling.state.scriptBeingWritten {
-            instance.commandHandling.InfoPrintln("load_script: cannot call while writing a script.")
-        } else if instance.commandHandling.RequireArgCount(args, 2) {
+        if instance.terminal.state.scriptBeingWritten {
+            instance.terminal.InfoPrintln("load_script: cannot call while writing a script.")
+        } else if instance.terminal.RequireArgCount(args, 2) {
             bytes, err := ioutil.ReadFile(args[1])
             if err != nil {
-                instance.commandHandling.InfoPrintf("load: Failed to load file '%s' with error '%v'\n", args[1], err)
+                instance.terminal.InfoPrintf("load: Failed to load file '%s' with error '%v'\n", args[1], err)
             } else {
                 compiled, err := instance.compileScript(bytes)
                 if err != nil {
-                    instance.commandHandling.InfoPrintln(err)
+                    instance.terminal.InfoPrintln(err)
                 } else {
                     instance.manageScript(Script{
                         name: strings.TrimSuffix(filepath.Base(args[1]), ".tengo"),
@@ -191,26 +199,26 @@ func (instance *Instance) runCommand(cmd string) {
 		// :load_config <filename>
 		err := instance.LoadConfig(args[1])
 		if err != nil {
-			instance.commandHandling.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", args[1], err)
+			instance.terminal.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", args[1], err)
 		}
 	case "new_command":
         // creates a new command that runs the commands provided in a file
         // if you want to replace a current command with a new name, use :alias
         // takes the form
         // :new_command <name> <config file>
-        if instance.commandHandling.RequireArgCount(args, 3) {
-			instance.commandHandling.commandMap[args[1]] = args[2]
+        if instance.terminal.RequireArgCount(args, 3) {
+			instance.terminal.commandMap[args[1]] = args[2]
 		}
 	case "bind":
         // this tells the state that binding is occuring and to which character. only one character can be bound at a time.
         // it is silently used by other commands like :end or :load to bind <script> to a character INSTEAD of running it 
 		// :bind <character>
         // <script>
-        if instance.commandHandling.RequireArgCount(args, 2) {
+        if instance.terminal.RequireArgCount(args, 2) {
             if len(args[1]) != 1 {
-                instance.commandHandling.InfoPrintf("bind: %s is an invalid binding; only single character bindings are supported.", args[1])
+                instance.terminal.InfoPrintf("bind: %s is an invalid binding; only single character bindings are supported.", args[1])
             } else {
-                instance.commandHandling.state.bindChar = gnc.Key(args[1][0])
+                instance.terminal.state.bindChar = gnc.Key(args[1][0])
             }
         }
 	case "echo":
@@ -218,37 +226,37 @@ func (instance *Instance) runCommand(cmd string) {
         // if no message is provided it still prints a newline
 		// :echo <message>
         message := strings.TrimPrefix(cmd, ":echo ")
-		instance.commandHandling.InfoPrintln(message)
+		instance.terminal.InfoPrintln(message)
     case "set_search":
         // sets instance state current search to the provided regexp
         // this doesn't do anything alone; the current search needs to be used first
         // :set_search <regexp>
-        if instance.commandHandling.RequireArgCount(args, 2) {
-            instance.commandHandling.state.currentSearch = args[1]
+        if instance.terminal.RequireArgCount(args, 2) {
+            instance.terminal.state.currentSearch = args[1]
         }
     case "alias":
         // binds a command (and optionally some arguments) to a new name
         // when the new name is called, it will literally be replaced by the command it was bound to and run with the new arguments appended to the end
         // this allows one to alias only some of a command's arguments to a name and allow others to vary, eg :alias echo_error :echo "Error: "
         // :alias <name> <command> <argument>*
-        if instance.commandHandling.RequireArgCountGTE(args, 3) {
+        if instance.terminal.RequireArgCountGTE(args, 3) {
             newName := args[1]
             command := strings.Join(args[2:], " ")
-            instance.commandHandling.aliasMap[newName] = command
+            instance.terminal.aliasMap[newName] = command
         }
 	default:
         // user defined command
-		configFile, ok := instance.commandHandling.commandMap[args[0]]
+		configFile, ok := instance.terminal.commandMap[args[0]]
 		if ok {
 			err := instance.LoadConfig(configFile)
 			if err != nil {
-				instance.commandHandling.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", configFile, err)
+				instance.terminal.InfoPrintf("load: Failed to load config '%s' with error '%v'\n", configFile, err)
 			}
             return
 		} 
 
         // alias
-        aliased, ok := instance.commandHandling.aliasMap[args[0]]
+        aliased, ok := instance.terminal.aliasMap[args[0]]
         if ok {
             if len(args) > 1 {
                 fullCommand := strings.Join(append([]string{aliased}, args[1:]...), " ")
@@ -259,7 +267,7 @@ func (instance *Instance) runCommand(cmd string) {
             return
         }
         
-        instance.commandHandling.InfoPrintf("Unknown command: '%s'\n", args[0])
+        instance.terminal.InfoPrintf("Unknown command: '%s'\n", args[0])
 	}
 }
 
@@ -301,20 +309,20 @@ func (instance *Instance) manageScript(script Script) {
     }
 
     bound := false
-	if instance.commandHandling.state.bindChar != 0 {
-        instance.commandHandling.InfoPrintf("Binding script: %s to character '%c'\n", whatToPrint, instance.commandHandling.state.bindChar)
-		instance.commandHandling.bindMap[instance.commandHandling.state.bindChar] = script
-		instance.commandHandling.state.bindChar = 0
+	if instance.terminal.state.bindChar != 0 {
+        instance.terminal.InfoPrintf("Binding script: %s to character '%c'\n", whatToPrint, instance.terminal.state.bindChar)
+		instance.terminal.bindMap[instance.terminal.state.bindChar] = script
+		instance.terminal.state.bindChar = 0
         bound = true
 	} 
-    if instance.commandHandling.state.onPlaybackBeingSet {
-		instance.commandHandling.InfoPrintln("Setting script to run when no songs are playing: " + whatToPrint)
-		instance.commandHandling.state.runOnNoPlayback = script
-		instance.commandHandling.state.onPlaybackBeingSet = false
+    if instance.terminal.state.onPlaybackBeingSet {
+		instance.terminal.InfoPrintln("Setting script to run when no songs are playing: " + whatToPrint)
+		instance.terminal.state.runOnNoPlayback = script
+		instance.terminal.state.onPlaybackBeingSet = false
         bound = true
 	} 
     if !bound {
-		instance.runScript(script)
+		instance.terminal.runScript(script)
 	}
 }
 
@@ -342,25 +350,13 @@ func (i *Instance) compileScript(bs []byte) (*tengo.Compiled, error) {
 	script.Add("nextMatch", i.TengoNextMatch)
 	script.Add("prevMatch", i.TengoPrevMatch)
     script.Add("getLine", i.TengoGetLine) 
+    script.Add("getChar", i.TengoGetChar) 
 
 	return script.Compile()
 }
 
-func (i *Instance) runScript(s Script) {
-    if s.name != "" {
-        i.commandHandling.InfoPrintln("Running script: " + s.name)
-    } else {
-        i.commandHandling.InfoPrint("Running script: " + string(s.contents))
-    }
-
-    defer i.commandHandling.InfoPrintRuntimeError()
-    if err := s.bytecode.Run(); err != nil {
-        i.commandHandling.InfoPrintln(err)
-    }
-}
-
 func (i *Instance) PlayIndex(index int) error {
-	i.StopPlayback()
+	i.mp.StopPlayback()
 	if !i.tree.IsInRange(index) {
 		return errors.New(fmt.Sprintf("instance.PlayIndex: index out of range %v.", index))
 	}
@@ -370,9 +366,9 @@ func (i *Instance) PlayIndex(index int) error {
 	i.tree.Select(index)
 	i.tree.Draw()
 
-	i.currentRemote = playFileWithMplayer(i.tree.CurrentEntry().Path, i.notifier, windowwriter.New(i.mpOutputWindow))
+	i.mp.currentRemote = playFileWithMplayer(i.tree.CurrentEntry().Path, i.mp.notifier, windowwriter.New(i.mp.mpOutputWindow))
 
 	//wait for the above function to send a signal that playback began
-	i.playbackState.ReceiveBlocking(i.notifier)
+	i.mp.playbackState.ReceiveBlocking(i.mp.notifier)
 	return nil
 }

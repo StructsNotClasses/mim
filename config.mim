@@ -42,8 +42,10 @@ if selectedIsDir() {
 matchIndex := nextMatch(currentIndex() + 1)
 if matchIndex != -1 {
     selectIndex(matchIndex)
+} else if matchIndex = nextMatch(0); matchIndex != -1 {
+    selectIndex(matchIndex)
 }
-:end select_next_match
+:end select_next_match_wrapped
 
 :bind N
 :begin
@@ -56,12 +58,53 @@ if matchIndex != -1 {
 :bind /
 :begin
 infoPrint("Input search: ")
-setSearch(getLine())
+line := ""
+ch := getChar()
+for ; ch != '\n'; ch = getChar() {
+    line = line + string(ch)
+    infoPrint(string(ch))
+}
+infoPrintln()
+setSearch(line)
 matchIndex := nextMatch(currentIndex() + 1)
 if matchIndex != -1 {
     selectIndex(matchIndex)
 }
 :end input_search
+
+:bind ?
+:begin
+selectWrappedNextMatch := func() {
+    matchIndex := nextMatch(currentIndex())
+    if matchIndex != -1 {
+        selectIndex(matchIndex)
+    } else if matchIndex = nextMatch(0); matchIndex != -1 {
+        selectIndex(matchIndex)
+    }
+}
+infoPrint("Input search: ")
+line := ""
+ch := getChar()
+for ; ch != '\n'; ch = getChar() {
+    line = line + string(ch)
+    infoPrint(string(ch))
+    setSearch(line)
+    selectWrappedNextMatch()
+}
+infoPrintln()
+setSearch(line)
+selectWrappedNextMatch()
+:end live_search
+
+:bind .
+:begin
+send("seek +15")
+:end seek_forward
+
+:bind ,
+:begin
+send("seek -15")
+:end seek_back
 
 :bind g
 :begin
