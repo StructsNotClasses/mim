@@ -2,8 +2,8 @@ package instance
 
 import (
 	"github.com/d5/tengo/v2"
-	//"github.com/d5/tengo/v2/objects"
 
+    "strings"
 	"math/rand"
 )
 
@@ -77,10 +77,17 @@ func (i *Instance) TengoSongCount(args ...tengo.Object) (tengo.Object, error) {
 func (i *Instance) TengoInfoPrint(args ...tengo.Object) (tengo.Object, error) {
 	for _, item := range args {
 		if value, ok := item.(*tengo.String); ok {
-			i.commandHandling.InfoPrint(value)
+            s := value.String()
+            i.commandHandling.InfoPrint(s[1:len(s)-1])
 		}
 	}
 	return nil, nil
+}
+
+func (i *Instance) TengoInfoPrintln(args ...tengo.Object) (tengo.Object, error) {
+    obj, err := i.TengoInfoPrint(args...)
+    i.commandHandling.InfoPrintln()
+    return obj, err
 }
 
 func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error) {
@@ -225,4 +232,77 @@ func (i *Instance) TengoItemCount(args ...tengo.Object) (tengo.Object, error) {
 	}
 
     return &tengo.Int{Value: int64(i.tree.ItemCount())}, nil
+}
+
+func (i *Instance) TengoSetSearch(args ...tengo.Object) (tengo.Object, error) {
+    if len(args) != 1 {
+        return nil, tengo.ErrWrongNumArguments
+    }
+
+    if ts, ok := args[0].(*tengo.String); ok {
+        ss := strings.TrimSuffix(strings.TrimPrefix(ts.String(), "\""), "\"")
+        i.commandHandling.state.currentSearch = ss
+        return nil, nil
+    } else {
+        return nil, tengo.ErrInvalidArgumentType{
+            Name:     "search value",
+            Expected: "string",
+            Found:    args[0].TypeName(),
+        }
+    }
+}
+
+// TengoNextMatch returns the index of the next match for the current search term starting from the index provided or -1 if none were found
+func (i *Instance) TengoNextMatch(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 1 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	if value, ok := args[0].(*tengo.Int); ok {
+		starting := int(value.Value)
+        match, exists := i.tree.NextMatch(starting, i.commandHandling.state.currentSearch)
+        if exists {
+            return &tengo.Int{Value: int64(match)}, nil
+        } else {
+            return &tengo.Int{Value: int64(-1)}, nil
+        }
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'nextMatch' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
+}
+
+// TengoPrevMatch returns the index of the next match backwards for the current search term starting from the index provided or -1 if none were found
+func (i *Instance) TengoPrevMatch(args ...tengo.Object) (tengo.Object, error) {
+	if len(args) != 1 {
+		return nil, tengo.ErrWrongNumArguments
+	}
+
+	if value, ok := args[0].(*tengo.Int); ok {
+		starting := int(value.Value)
+        match, exists := i.tree.PrevMatch(starting - 1, i.commandHandling.state.currentSearch)
+        if exists {
+            return &tengo.Int{Value: int64(match)}, nil
+        } else {
+            return &tengo.Int{Value: int64(-1)}, nil
+        }
+	} else {
+		return nil, tengo.ErrInvalidArgumentType{
+			Name:     "'prevMatch' argument",
+			Expected: "int",
+			Found:    args[0].TypeName(),
+		}
+	}
+}
+
+func (i *Instance) TengoGetLine(args ...tengo.Object) (tengo.Object, error) {
+    if len(args) != 0 {
+        return nil, tengo.ErrWrongNumArguments
+    }
+
+    line := i.GetLineBlocking()
+    return &tengo.String{Value: line}, nil
 }

@@ -8,6 +8,8 @@ import (
 	"github.com/StructsNotClasses/mim/musicarray"
 	"github.com/StructsNotClasses/mim/remote"
 
+	"github.com/d5/tengo/v2"
+
 	gnc "github.com/rthornton128/goncurses"
 
 	"fmt"
@@ -22,6 +24,7 @@ const INT32MAX = 2147483647
 type Script struct {
     name string
     contents []byte
+    bytecode *tengo.Compiled
 }
 
 type InputMode int
@@ -32,12 +35,20 @@ const (
 )
 
 type CommandStateMachine struct {
+    // buffer
 	line               []byte
 	lines              []byte
-	bindChar           gnc.Key
-	onPlaybackBeingSet bool
+
     runOnNoPlayback Script
+
+    currentSearch string
+    
+    // mode settings
+	bindChar           gnc.Key
 	mode               InputMode
+    commandBeingWritten bool
+    scriptBeingWritten bool
+	onPlaybackBeingSet bool
 	exit               bool
 }
 
@@ -47,6 +58,7 @@ type CommandInterface struct {
     state           CommandStateMachine
     bindMap         map[gnc.Key]Script
     commandMap      map[string]string
+    aliasMap        map[string]string
 }
 
 type Instance struct {
@@ -55,8 +67,10 @@ type Instance struct {
 
     // tree
 	tree            dirtree.DirTree
+
     // command interface
     commandHandling    CommandInterface
+
     // mplayer management
 	currentRemote   remote.Remote
 	playbackState   playback.PlaybackState
@@ -90,13 +104,18 @@ func New(scr *gnc.Window, array musicarray.MusicArray) Instance {
         state: CommandStateMachine{
             line: []byte{},
             lines: []byte{},
+            runOnNoPlayback: Script{},
+            currentSearch: "",
             bindChar:           0,
-            onPlaybackBeingSet: false,
             mode:               CommandMode,
+            commandBeingWritten: false,
+            scriptBeingWritten: false,
+            onPlaybackBeingSet: false,
             exit:               false,
         },
         bindMap: make(map[gnc.Key]Script),
         commandMap: make(map[string]string),
+        aliasMap: make(map[string]string),
     }
 
 	instance.currentRemote = remote.Remote{}
@@ -155,6 +174,22 @@ func (c CommandInterface) UpdateInput(currentLine []byte) {
 	replaceCurrentLine(c.inWin, currentLine)
 }
 
+func (c CommandInterface) RequireArgCount(args []string, count int) bool {
+    if len(args) != count {
+        c.InfoPrintf("Command Error: %s takes %d arguments but recieved %d.\n", args[0], count, len(args))
+        return false
+    }
+    return true
+}
+
+func (c CommandInterface) RequireArgCountGTE(args []string, count int) bool {
+    if len(args) < count {
+        c.InfoPrintf("Command Error: %s takes %d or more arguments but recieved %d.\n", args[0], count, len(args))
+        return false
+    }
+    return true
+}
+
 // replaceCurrentLine erases the current line on the window and prints a new one
 // the new string's byte array could potentially contain a newline, which means this can replace the line with multiple lines
 func replaceCurrentLine(win *gnc.Window, bs []byte) {
@@ -168,4 +203,20 @@ func replaceCurrentLine(win *gnc.Window, bs []byte) {
 
 func (i Instance) GetKey() gnc.Key {
 	return i.backgroundWindow.GetChar()
+}
+
+func (i Instance) GetLineBlocking() string {
+    // set blocking
+    i.backgroundWindow.Timeout(-1)
+    line := ""
+    ch := i.backgroundWindow.GetChar()
+    for ; ch != '\n'; ch = i.backgroundWindow.GetChar() {
+        line = fmt.Sprintf("%s%c", line, rune(ch))
+        i.commandHandling.InfoPrintf("%c", rune(ch))
+    }
+    i.commandHandling.InfoPrintln()
+
+    // unset blocking
+    i.backgroundWindow.Timeout(0)
+    return line
 }

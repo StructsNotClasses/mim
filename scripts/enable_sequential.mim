@@ -1,8 +1,8 @@
 :echo Enabling sequential playback
 :on_no_playback
+:begin
 selectIndex(currentIndex() + 1)
 if !selectedIsDir() {
     playSelected()
 }
 :end play_next
-:char_mode

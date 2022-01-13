@@ -1,4 +1,5 @@
 :on_no_playback
+:begin
 if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
     r := randomIndex()
     for !(isDir(r) && !isDir(r + 1)) {
@@ -9,5 +10,5 @@ if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
     selectIndex(currentIndex() + 1)
 } 
 playSelected()
-:end
+:end next_in_dir_or_random_dir
 :char_mode

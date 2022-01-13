@@ -1,5 +1,6 @@
 :echo Enabling Shuffled Album Playback
 :on_no_playback
+:begin
 if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
     r := randomIndex()
     for !(isDir(r) && !isDir(r + 1)) {
@@ -11,4 +12,3 @@ if selectedIsDir() || depth(currentIndex()) < depth(currentIndex() - 1) {
 } 
 playSelected()
 :end select_random_album_or_next_song
-:char_mode
