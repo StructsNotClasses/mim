@@ -2,41 +2,41 @@ package main
 
 import (
 	"github.com/StructsNotClasses/mim/instance"
-	"github.com/StructsNotClasses/mim/musicarray"
 
 	gnc "github.com/rthornton128/goncurses"
 
 	"log"
 )
 
-const PARENT_DIRECTORY = "/mnt/music"
-const CONFIG = "/home/pugpugpugs/mim/config.mim"
-
 func main() {
-	arr, err := musicarray.New(PARENT_DIRECTORY)
-    /*
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		arr.Print()
-	}
-    */
+    const musicDirectory = "/mnt/music"
+    const configFile = "/home/pugpugpugs/mim/config.mim"
 
+    // start ncurses
 	backgroundWindow, err := gnc.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer gnc.End()
-
 	gnc.CBreak(true)
-	//gnc.Keypad(true)
 	gnc.Echo(false)
 	backgroundWindow.Keypad(true)
 
-	program := instance.New(backgroundWindow, arr)
-	err = program.LoadConfig(CONFIG)
+    // initialize program state
+	program, err := instance.New(backgroundWindow, musicDirectory)
 	if err != nil {
+        gnc.End()
 		log.Fatal(err)
 	}
+    shouldExit, err := program.PassFileToInput(configFile)
+	if err != nil {
+        gnc.End()
+		log.Fatal(err)
+	}
+    if shouldExit {
+        gnc.End()
+        log.Fatal("Warning: ':exit' was called in the initial config file. This is probably in error.\n")
+    }
+
 	program.Run()
 }

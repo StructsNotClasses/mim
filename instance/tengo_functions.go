@@ -97,7 +97,7 @@ func (i *Instance) TengoCurrentIndex(args ...tengo.Object) (tengo.Object, error)
 	return &tengo.Int{Value: int64(i.tree.CurrentIndex())}, nil
 }
 
-// TengoRandomIndex returns a random number that is a valid song index. It requires random to already be seeded.
+// TengoRandomIndex returns a random number that is a valid index. It requires random to already be seeded.
 func (i *Instance) TengoRandomIndex(args ...tengo.Object) (tengo.Object, error) {
 	rnum := rand.Int31n(int32(i.tree.ItemCount()))
 	return &tengo.Int{Value: int64(rnum)}, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/StructsNotClasses/mim/instance/playback"
 	"github.com/StructsNotClasses/mim/instance/client"
 	"github.com/StructsNotClasses/mim/musicarray"
+	"github.com/StructsNotClasses/mim/windowwriter"
 	"github.com/StructsNotClasses/mim/remote"
 
 	"github.com/d5/tengo/v2"
@@ -14,51 +15,15 @@ import (
 
 	"fmt"
 	"io/ioutil"
-	"log"
+    "errors"
 	"math/rand"
 	"time"
 )
-
-const INT32MAX = 2147483647
 
 type Script struct {
     name string
     contents []byte
     bytecode *tengo.Compiled
-}
-
-type InputMode int
-
-const (
-	CommandMode InputMode = iota
-	CharacterMode
-)
-
-type CommandState struct {
-    // buffer
-	line               []byte
-	lines              []byte
-
-    runOnNoPlayback Script
-
-    currentSearch string
-    
-    // mode settings
-	bindChar           gnc.Key
-	mode               InputMode
-    commandBeingWritten bool
-    scriptBeingWritten bool
-	onPlaybackBeingSet bool
-	exit               bool
-}
-
-type CommandInterface struct {
-    inWin *gnc.Window
-    outWin *gnc.Window
-    state           CommandState
-    bindMap         map[gnc.Key]Script
-    commandMap      map[string]string
-    aliasMap        map[string]string
 }
 
 type MplayerPlayer struct {
@@ -72,75 +37,97 @@ type MplayerPlayer struct {
 type Instance struct {
     backgroundWindow *gnc.Window
 	tree            dirtree.DirTree
-    terminal    CommandInterface
+    terminal    Terminal
     mp MplayerPlayer
 }
 
-func New(scr *gnc.Window, array musicarray.MusicArray) Instance {
-	if len(array) > INT32MAX {
-		log.Fatal(fmt.Sprintf("Cannot play more than %d songs at a time.", INT32MAX))
-	}
+func New(scr *gnc.Window, musicDirectory string) (Instance, error) {
+    const int32Max = 2147483647
+
+    var bgwin, mpwin, treewin, inwin, outwin *gnc.Window
+
+    // seed random
 	rand.Seed(time.Now().UnixNano())
 
-	//make user input non-blocking
+	// make user input non-blocking
 	scr.Timeout(0)
 
-	var instance Instance
-
-    var mpwin, treewin, inwin, outwin *gnc.Window
-    var err error
-	instance.backgroundWindow, mpwin, treewin, inwin, outwin, err = client.New(scr)
+    // create the array for the music tree
+	arr, err := musicarray.New(musicDirectory)
 	if err != nil {
-		log.Fatal(err)
+        return Instance{}, err
 	}
 
-	instance.tree = dirtree.New(treewin, array)
+    // random number generation currently produces an int32, so limit the array length to its max
+	if len(arr) > int32Max {
+        return Instance{}, errors.New(fmt.Sprintf("mim currently does not support playback of more than %d songs and directories at a time.", int32Max))
+	}
 
-    instance.terminal = CommandInterface{
-        inWin: inwin,
-        outWin: outwin,
-        state: CommandState{
-            line: []byte{},
-            lines: []byte{},
-            runOnNoPlayback: Script{},
-            currentSearch: "",
-            bindChar:           0,
-            mode:               CommandMode,
-            commandBeingWritten: false,
-            scriptBeingWritten: false,
-            onPlaybackBeingSet: false,
-            exit:               false,
+	bgwin, mpwin, treewin, inwin, outwin, err = client.New(scr)
+	if err != nil {
+        return Instance{}, err
+	}
+
+    return Instance{
+        backgroundWindow: bgwin,
+        tree: dirtree.New(treewin, arr),
+        terminal : Terminal{
+            inWin: inwin,
+            outWin: outwin,
+            state: TerminalState{
+                line: []byte{},
+                lines: []byte{},
+                runOnNoPlayback: Script{},
+                currentSearch: "",
+                bindChar:           0,
+                mode:               CommandMode,
+                commandBeingWritten: false,
+                scriptBeingWritten: false,
+                onPlaybackBeingSet: false,
+            },
+            bindMap: make(map[rune]Script),
+            commandMap: make(map[string]string),
+            aliasMap: make(map[string]string),
         },
-        bindMap: make(map[gnc.Key]Script),
-        commandMap: make(map[string]string),
-        aliasMap: make(map[string]string),
-    }
-
-    instance.mp = MplayerPlayer{
-        currentRemote: remote.Remote{},
-        notifier: make(chan notification.Notification),
-        mpOutputWindow: mpwin,
-    }
-
-	return instance
+        mp: MplayerPlayer{
+            currentRemote: remote.Remote{},
+            notifier: make(chan notification.Notification),
+            mpOutputWindow: mpwin,
+        },
+    }, nil
 }
 
-func (instance *Instance) LoadConfig(filename string) error {
+func (instance *Instance) PassFileToInput(filename string) (bool, error) {
 	instance.terminal.state.line = []byte{}
 
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return err
+		return false, err
 	}
 	for _, b := range bytes {
-		instance.HandleKey(gnc.Key(b))
+        if instance.HandleInput(rune(b)) {
+            return true, nil
+        }
 	}
-	return nil
+	return false, nil
 }
 
-func (instance *Instance) Exit() {
-	instance.terminal.state.exit = true
-	instance.mp.StopPlayback()
+func (i *Instance) PlayIndex(index int) error {
+	i.mp.StopPlayback()
+	if !i.tree.IsInRange(index) {
+		return errors.New(fmt.Sprintf("instance.PlayIndex: index out of range %v.", index))
+	}
+	if i.tree.IsDir(index) {
+		return errors.New(fmt.Sprintf("instance.PlayIndex: directories cannot be played"))
+	}
+	i.tree.Select(index)
+	i.tree.Draw()
+
+	i.mp.currentRemote = playFileWithMplayer(i.tree.CurrentEntry().Path, i.mp.notifier, windowwriter.New(i.mp.mpOutputWindow))
+
+	//wait for the above function to send a signal that playback began
+	i.mp.playbackState.ReceiveBlocking(i.mp.notifier)
+	return nil
 }
 
 func (mp *MplayerPlayer) StopPlayback() {
@@ -148,42 +135,4 @@ func (mp *MplayerPlayer) StopPlayback() {
 		mp.currentRemote.SendString("quit\n")
 		mp.playbackState.ReceiveBlocking(mp.notifier)
 	}
-}
-
-func (i Instance) GetKey() gnc.Key {
-	return i.backgroundWindow.GetChar()
-}
-
-func (i Instance) GetLineBlocking() string {
-    // set blocking
-    i.backgroundWindow.Timeout(-1)
-    line := ""
-    ch := i.backgroundWindow.GetChar()
-    for ; ch != '\n'; ch = i.backgroundWindow.GetChar() {
-        line = fmt.Sprintf("%s%c", line, rune(ch))
-        i.terminal.InfoPrintf("%c", rune(ch))
-    }
-    i.terminal.InfoPrintln()
-
-    // unset blocking
-    i.backgroundWindow.Timeout(0)
-    return line
-}
-
-func (i Instance) GetCharBlocking() rune {
-    i.backgroundWindow.Timeout(-1)
-    ch := i.backgroundWindow.GetChar()
-    i.backgroundWindow.Timeout(0)
-    return rune(ch)
-}
-
-// replaceCurrentLine erases the current line on the window and prints a new one
-// the new string's byte array can contain a newline, which means this can replace the line with multiple lines
-func replaceCurrentLine(win *gnc.Window, bs []byte) {
-	s := string(bs)
-	y, _ := win.CursorYX()
-	_, w := win.MaxYX()
-	win.HLine(y, 0, ' ', w)
-	win.MovePrint(y, 0, s)
-	win.Refresh()
 }
