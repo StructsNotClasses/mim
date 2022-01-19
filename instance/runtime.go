@@ -1,73 +1,64 @@
 package instance
 
 import (
+	"github.com/StructsNotClasses/mim/script"
+
 	"github.com/d5/tengo/v2"
 )
 
-func (instance *Instance) Run() {
-    for shouldExit := false; !shouldExit; {
+func (i *Instance) Run() {
+	for shouldExit := false; !shouldExit; {
 		// check if there's a notification of playback state
-		instance.mp.playbackState.Receive(instance.mp.notifier)
+		i.mp.playbackState.Receive(i.mp.notifier)
 
-		// if no song is playing, run the script that has been dedicated to afformentioned scenario
-		if !instance.mp.playbackState.PlaybackInProgress && len(instance.terminal.state.runOnNoPlayback.contents) > 0 {
-			instance.terminal.runScript(instance.terminal.state.runOnNoPlayback)
+		// if no song is playing, run the so dedicated script
+		if !i.mp.playbackState.PlaybackInProgress {
+			i.terminal.TryRunNoPlaybackScript()
 		}
 
-        // process any new user input
-		if ch := instance.GetCharNonBlocking(); ch != 0 {
-            shouldExit = instance.HandleInput(ch)
+		// process any new user input
+		if ch := i.GetCharNonBlocking(); ch != 0 {
+            i.terminal.InputCharacter(ch)
+            if ch == '\n' {
+                shouldExit = i.HandleNewline()
+            }
 		}
 	}
 }
 
-func (i *Instance) HandleInput(ch rune) bool {
-    i.terminal.InputCharacter(ch)
-
-	if ch == '\n' {
-        if i.terminal.state.commandBeingWritten {
-            i.terminal.state.commandBeingWritten = false
-            cmd := string(i.terminal.state.line)
-            i.terminal.state.line = []byte{}
-            return i.runCommand(cmd)
-        } else if i.terminal.state.scriptBeingWritten {
-            i.terminal.AddInputToBuffer()
-        } else if len(i.terminal.state.line) != 1 {
-            i.terminal.InfoPrintln("Error: Non-command (somehow) entered before a begin command.")
-		}
-
-        //always clear the line buffer
-        i.terminal.state.line = []byte{}
+func (i *Instance) HandleNewline() bool {
+    if i.terminal.CommandBeingWritten() {
+        cmd := i.terminal.CurrentLine()
+        i.terminal.EndCommand()
+        return i.runCommand(cmd)
+    } else if i.terminal.ScriptBeingWritten() {
+        i.terminal.PushLineToBuffer()
+    } else if len(i.terminal.CurrentLine()) != 1 {
+        i.terminal.InfoPrintf("Error: Non-command input '%s' entered before a begin command.\n", i.terminal.CurrentLine())
+        i.terminal.ClearLine()
+    } else {
+        i.terminal.ClearLine()
     }
     return false
 }
 
-func (instance *Instance) manageScript(script Script) {
-    whatToPrint := string(script.contents)
-    if script.name != "" {
-        whatToPrint = script.name
-    }
-
-    bound := false
-	if instance.terminal.state.bindChar != 0 {
-        instance.terminal.InfoPrintf("Binding script: %s to character '%c'\n", whatToPrint, instance.terminal.state.bindChar)
-		instance.terminal.bindMap[instance.terminal.state.bindChar] = script
-		instance.terminal.state.bindChar = 0
-        bound = true
-	} 
-    if instance.terminal.state.onPlaybackBeingSet {
-		instance.terminal.InfoPrintln("Setting script to run when no songs are playing: " + whatToPrint)
-		instance.terminal.state.runOnNoPlayback = script
-		instance.terminal.state.onPlaybackBeingSet = false
-        bound = true
-	} 
-    if !bound {
-		instance.terminal.runScript(script)
+func (instance *Instance) manageScript(s script.Script) {
+	if !instance.terminal.NextScriptShouldBeBound() && !instance.terminal.NextScriptIsNoPlayback() {
+		instance.terminal.RunScript(s)
+	} else {
+		if instance.terminal.NextScriptShouldBeBound() {
+			instance.terminal.InfoPrintf("Binding script: %s to character '%c'\n", s.Name(), instance.terminal.Binding())
+			instance.terminal.BindCurrentToScript(s)
+		}
+		if instance.terminal.NextScriptIsNoPlayback() {
+			instance.terminal.InfoPrintln("Setting script to run when no songs are playing: " + s.Name())
+			instance.terminal.SetNoPlayback(s)
+		}
 	}
 }
 
 func (i *Instance) compileScript(bs []byte) (*tengo.Compiled, error) {
-    script := tengo.NewScript(bs)
+	script := tengo.NewScript(bs)
 	script.Add("send", i.TengoSend)
 	script.Add("selectIndex", i.TengoSelectIndex)
 	script.Add("playSelected", i.TengoPlaySelected)
@@ -89,8 +80,8 @@ func (i *Instance) compileScript(bs []byte) (*tengo.Compiled, error) {
 	script.Add("setSearch", i.TengoSetSearch)
 	script.Add("nextMatch", i.TengoNextMatch)
 	script.Add("prevMatch", i.TengoPrevMatch)
-    script.Add("getLine", i.TengoGetLine) 
-    script.Add("getChar", i.TengoGetChar) 
+	script.Add("getLine", i.TengoGetLine)
+	script.Add("getChar", i.TengoGetChar)
 
 	return script.Compile()
 }

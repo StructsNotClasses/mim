@@ -2,7 +2,13 @@ package playback
 
 import (
     "github.com/StructsNotClasses/mim/remote"
-    "github.com/StructsNotClasses/mim/instance/notification"
+)
+
+type Notification int
+
+const (
+    Began Notification = iota
+    Ended
 )
 
 type PlaybackState struct {
@@ -16,25 +22,25 @@ func (pbs *PlaybackState) Remote() (r remote.Remote, ok bool) {
     return
 }
 
-func (pbs *PlaybackState) Receive(notificationChannel chan notification.Notification) {
+func (pbs *PlaybackState) Receive(signals chan Notification) {
     select {
-    case n := <-notificationChannel:
-        pbs.setFromNotification(n)
+    case signal := <-signals:
+        pbs.setFromNotification(signal)
     default:
         return
     }
 }
 
-func (pbs *PlaybackState) ReceiveBlocking(notificationChannel chan notification.Notification) {
-    n := <-notificationChannel
+func (pbs *PlaybackState) ReceiveBlocking(signals chan Notification) {
+    n := <-signals
     pbs.setFromNotification(n)
 }
 
-func (pbs *PlaybackState) setFromNotification(n notification.Notification) {
+func (pbs *PlaybackState) setFromNotification(n Notification) {
     switch n {
-    case notification.PlaybackBegan:
+    case Began:
         pbs.PlaybackInProgress = true
-    case notification.PlaybackEnded:
+    case Ended:
         pbs.PlaybackInProgress = false
     }
 }

@@ -3,7 +3,7 @@ package dirtree
 import (
 	"github.com/StructsNotClasses/mim/musicarray"
 
-    "strings"
+	"strings"
 )
 
 func (t *DirTree) SelectUp() {
@@ -56,12 +56,12 @@ func (t *DirTree) SelectEnclosing(index int) {
 }
 
 func (t *DirTree) SelectNextMatch(s string) {
-    for i := t.currentIndex; i < len(t.array); i++ {
-        if strings.Contains(t.array[i].Name, s) {
-            t.Select(i)
-            return
-        }
-    }
+	for i := t.currentIndex; i < len(t.array); i++ {
+		if strings.Contains(t.array[i].Name, s) {
+			t.Select(i)
+			return
+		}
+	}
 }
 
 func (t *DirTree) Select(index int) {

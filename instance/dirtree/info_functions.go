@@ -2,8 +2,6 @@ package dirtree
 
 import (
 	"github.com/StructsNotClasses/mim/musicarray"
-
-    "strings"
 )
 
 func (t DirTree) IsInRange(index int) bool {
@@ -36,22 +34,4 @@ func (t DirTree) IsDir(index int) bool {
 
 func (t DirTree) IsExpanded(index int) bool {
 	return t.array[index].Type == musicarray.DirectoryEntry && t.array[index].Dir.Expanded()
-}
-
-func (t DirTree) NextMatch(starting int, target string) (int, bool) {
-    for i := starting; i < len(t.array); i++ {
-        if strings.Contains(t.array[i].Name, target) {
-            return i, true
-        }
-    }
-    return -1, false
-}
-
-func (t DirTree) PrevMatch(starting int, target string) (int, bool) {
-    for i := starting; i >= 0; i-- {
-        if strings.Contains(t.array[i].Name, target) {
-            return i, true
-        }
-    }
-    return -1, false
 }

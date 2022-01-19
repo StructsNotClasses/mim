@@ -1,27 +1,26 @@
 package instance
 
 import (
-    "fmt"
+	"fmt"
 )
 
+func (i Instance) GetCharBlocking() rune {
+	i.bg.Timeout(-1)
+	return rune(i.bg.GetChar())
+}
+
 func (i Instance) GetCharNonBlocking() rune {
-    i.backgroundWindow.Timeout(0)
-    return rune(i.backgroundWindow.GetChar())
+	i.bg.Timeout(0)
+	return rune(i.bg.GetChar())
 }
 
 func (i Instance) GetLineBlocking() string {
-    i.backgroundWindow.Timeout(-1)
-    line := ""
-    ch := i.backgroundWindow.GetChar()
-    for ; ch != '\n'; ch = i.backgroundWindow.GetChar() {
-        line = fmt.Sprintf("%s%c", line, rune(ch))
-    }
+	i.bg.Timeout(-1)
+	line := ""
+	ch := i.bg.GetChar()
+	for ; ch != '\n'; ch = i.bg.GetChar() {
+		line = fmt.Sprintf("%s%c", line, rune(ch))
+	}
 
-    return line
-}
-
-func (i Instance) GetCharBlocking() rune {
-    i.backgroundWindow.Timeout(-1)
-    ch := i.backgroundWindow.GetChar()
-    return rune(ch)
+	return line
 }

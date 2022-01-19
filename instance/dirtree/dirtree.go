@@ -9,16 +9,18 @@ import (
 )
 
 type DirTree struct {
-    win *gnc.Window
-	currentIndex int
-	array        musicarray.MusicArray
+	win           *gnc.Window
+	currentIndex  int
+	array         musicarray.MusicArray
+	currentSearch string
 }
 
 func New(win *gnc.Window, arr musicarray.MusicArray) DirTree {
 	return DirTree{
-        win: win,
-		currentIndex: 0,
-		array:        arr,
+		win:           win,
+		currentIndex:  0,
+		array:         arr,
+		currentSearch: "",
 	}
 }
 

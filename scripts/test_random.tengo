@@ -1,0 +1,41 @@
+sort := func (arr) {
+            maxi := 0
+            for i := 0; i < len(arr); i++ {
+                if i % 100 == 0 {
+                    infoPrintln("Reached ", i)
+                }
+                min := arr[i][1]
+                mini := i
+                for j := i; j < len(arr); j++ {
+                    if arr[j][1] <= arr[mini][1] {
+                        mini = j
+                        min = arr[j][1]
+                    }
+                }
+                tmp := arr[i]
+                arr[i] = arr[mini]
+                arr[mini] = tmp
+            }
+            return arr
+        }
+
+iterations := 100000
+arr := []
+for i := 0; i < itemCount(); i++ {
+    arr = append(arr, [i, 0])
+}
+infoPrintln("Array Created!")
+
+for i := 0; i < iterations; i++ {
+    arr[randomIndex()][1]++
+}
+infoPrintln("Random Iterations Complete!")
+
+arr = sort(arr)
+infoPrintln("Sorting Complete!")
+infoPrintln("Results:")
+
+for i := len(arr) - 1; i > len(arr) - 11; i-- {
+    infoPrintln(arr[i][0], ", ", arr[i][1])
+}
+infoPrintln("Done.")
